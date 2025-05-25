@@ -83,5 +83,3 @@ Low Priority:
 - GimpResource: For units/colors
 - New widget APIs: GTK4-compatible widgets
 - GeglBuffer: For pixel data access
-
-This migration represents a major rewrite - the plugin architecture changed fundamentally between GIMP 2.x and 3.0. Most code will need significant restructuring rather than simple find/replace operations.
