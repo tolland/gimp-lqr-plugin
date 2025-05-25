@@ -230,7 +230,7 @@ callback_edit_mask_button (GtkWidget * button, gpointer data)
     }
 
   gimp_image_undo_group_start (p_data->image_ID);
-  gimp_image_set_active_layer(p_data->image_ID, layer_ID);
+  lqr_image_set_active_layer(p_data->image_ID, layer_ID);
   gimp_image_undo_group_end (p_data->image_ID);
 
   nl_data->preview_data->ui_vals->layer_on_edit_ID = layer_ID;

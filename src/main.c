@@ -57,7 +57,7 @@ static GimpValueArray * lqr_run (GimpProcedure        *procedure,
                                   GimpImage            *image,
                                   gint                  n_drawables,
                                   GimpDrawable        **drawables,
-                                  const GimpValueArray *args,
+                                  GimpProcedureConfig  *config,
                                   gpointer              run_data);
 
 
@@ -402,17 +402,19 @@ create_procedure (GimpPlugIn  *plug_in,
 }
 
 
-static void
-run (const gchar * name,
-     gint n_params,
-     const GimpParam * param, gint * nreturn_vals, GimpParam ** return_vals)
+static GimpValueArray *
+lqr_run (GimpProcedure        *procedure,
+         GimpRunMode           run_mode,
+         GimpImage            *image,
+         gint                  n_drawables,
+         GimpDrawable        **drawables,
+         GimpProcedureConfig  *config,
+         gpointer              run_data)
 {
-  static GimpParam values[1];
-  gint32 layer_ID;
-
-  gint32 image_ID;
-  GimpRunMode run_mode;
   GimpPDBStatusType status = GIMP_PDB_SUCCESS;
+  GimpDrawable *drawable;
+  gint32 layer_ID;
+  gint32 image_ID;
 
   gboolean run_dialog = TRUE;
   gboolean run_render = TRUE;
@@ -420,9 +422,6 @@ run (const gchar * name,
   gint dialog_I_resp;
   gint dialog_aux_resp;
   gboolean render_success = FALSE;
-
-  *nreturn_vals = 1;
-  *return_vals = values;
 
   /*  Initialize i18n support  */
 #if defined(G_OS_WIN32)
@@ -435,21 +434,23 @@ run (const gchar * name,
 #endif
   textdomain (GETTEXT_PACKAGE);
 
-  args_num = G_N_ELEMENTS (args);
-
   /* Initialize default colors */
   initialize_default_colors ();
 
-  run_mode = param[0].data.d_int32;
-  image_ID = param[1].data.d_int32;
-  layer_ID = param[2].data.d_drawable;
-  if (gimp_drawable_is_channel (layer_ID))
+  /* Get the first drawable (layer) */
+  drawable = drawables[0];
+  layer_ID = gimp_item_get_id (GIMP_ITEM (drawable));
+  image_ID = gimp_image_get_id (image);
+  
+  if (gimp_item_is_channel (GIMP_ITEM (drawable)))
     {
-      gimp_image_unset_active_channel (image_ID);
+      gimp_image_unset_active_channel (image);
     }
-  if (!gimp_drawable_is_layer (layer_ID))
+  if (!gimp_item_is_layer (GIMP_ITEM (drawable)))
     {
-      layer_ID = gimp_image_get_active_layer (image_ID);
+      GimpLayer *active_layer = gimp_image_get_active_layer (image);
+      if (active_layer)
+        layer_ID = gimp_item_get_id (GIMP_ITEM (active_layer));
     }
 
 
@@ -464,23 +465,12 @@ run (const gchar * name,
   image_vals.image_ID = image_ID;
   drawable_vals.layer_ID = layer_ID;
 
-  if (strcmp (name, PLUG_IN_NAME) == 0)
+  switch (run_mode)
     {
-      switch (run_mode)
-        {
-        case GIMP_RUN_NONINTERACTIVE:
-          if (n_params != args_num)
-            {
-              fprintf(stderr, "gimp-lqr-plugin: error: wrong number of arguments\n");
-              fflush(stderr);
-              status = GIMP_PDB_CALLING_ERROR;
-            }
-          else
-            {
-              noninteractive_read_vals (param);
-              layer_ID = drawable_vals.layer_ID;
-            }
-          break;
+    case GIMP_RUN_NONINTERACTIVE:
+      noninteractive_read_vals (config, image);
+      layer_ID = drawable_vals.layer_ID;
+      break;
 
         case GIMP_RUN_INTERACTIVE:
           retrieve_vals();
@@ -548,17 +538,12 @@ run (const gchar * name,
             }
           break;
 
-        case GIMP_RUN_WITH_LAST_VALS:
-          retrieve_vals_use_aux_layers_names(image_ID);
-          break;
+    case GIMP_RUN_WITH_LAST_VALS:
+      retrieve_vals_use_aux_layers_names(image_ID);
+      break;
 
-        default:
-          break;
-        }
-    }
-  else
-    {
-      status = GIMP_PDB_CALLING_ERROR;
+    default:
+      break;
     }
 
   image_ID = image_vals.image_ID;
@@ -566,14 +551,14 @@ run (const gchar * name,
 
   if (status == GIMP_PDB_SUCCESS)
     {
-      IMAGE_CHECK (image_ID, );
+      IMAGE_CHECK (image_ID, return gimp_procedure_new_return_values (procedure, GIMP_PDB_EXECUTION_ERROR, NULL));
       AUX_LAYER_STATUS(vals.pres_layer_ID, ui_vals.pres_status);
       AUX_LAYER_STATUS(vals.disc_layer_ID, ui_vals.disc_status);
       AUX_LAYER_STATUS(vals.rigmask_layer_ID, ui_vals.rigmask_status);
       ui_vals.last_used_width = vals.new_width;
       ui_vals.last_used_height = vals.new_height;
       ui_vals.last_layer_ID = layer_ID;
-      gimp_image_undo_group_start (image_ID);
+      gimp_image_undo_group_start (image);
       render_success = TRUE;
       if (run_render)
         {
@@ -587,9 +572,10 @@ run (const gchar * name,
               drawable_vals.layer_ID = carver_data->layer_ID;
               if (image_ID != image_vals.image_ID)
                 {
-                  gimp_image_undo_group_end (image_ID);
+                  gimp_image_undo_group_end (image);
                   image_ID = image_vals.image_ID;
-                  gimp_image_undo_group_start (image_ID);
+                  image = gimp_image_get_by_id (image_ID);
+                  gimp_image_undo_group_start (image);
                 }
               render_success = render_noninteractive (&vals, &col_vals, carver_data);
             }
@@ -603,13 +589,11 @@ run (const gchar * name,
           save_vals();
         }
 
-      IMAGE_CHECK (image_ID, );
-      gimp_image_undo_group_end (image_ID);
+      IMAGE_CHECK (image_ID, return gimp_procedure_new_return_values (procedure, GIMP_PDB_EXECUTION_ERROR, NULL));
+      gimp_image_undo_group_end (image);
     }
 
-  values[0].type = GIMP_PDB_STATUS;
-  values[0].data.d_status = status;
-
+  return gimp_procedure_new_return_values (procedure, status, NULL);
 }
 
 static gint32
@@ -783,7 +767,7 @@ cancel_work_on_aux_layer(void)
     {
       return;
     }
-  gimp_image_set_active_layer(image_vals.image_ID, drawable_vals.layer_ID);
+  lqr_image_set_active_layer(image_vals.image_ID, drawable_vals.layer_ID);
   if (ui_vals.layer_on_edit_is_new && gimp_drawable_is_valid (ui_vals.layer_on_edit_ID))
     {
       gimp_image_remove_layer(image_vals.image_ID, ui_vals.layer_on_edit_ID);

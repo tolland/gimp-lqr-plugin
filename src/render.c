@@ -54,7 +54,7 @@
   } G_STMT_END
 
 #define IMAGE_TYPE_CHECK(image_ID, base_type) G_STMT_START { \
-  if (gimp_image_base_type(image_ID) != base_type) \
+  if (gimp_image_get_base_type(image_ID) != base_type) \
     { \
       g_message(_("Error: image type changed")); \
       return FALSE; \
@@ -161,7 +161,7 @@ render_init_carver (PlugInImageVals * image_vals,
   if (!interactive)
     {
       ignore_disc_mask = compute_ignore_disc_mask (vals, old_width, old_height, new_width, new_height);
-      if ((vals->output_seams) && (gimp_image_base_type(image_ID) != GIMP_RGB))
+      if ((vals->output_seams) && (gimp_image_get_base_type(image_ID) != GIMP_RGB))
         {
           gimp_image_convert_rgb (image_ID);
         }
@@ -173,16 +173,16 @@ render_init_carver (PlugInImageVals * image_vals,
       layer_ID = gimp_layer_copy (layer_ID);
       gimp_image_insert_layer (image_ID, layer_ID, 0, -1);
       gimp_drawable_set_name (layer_ID, new_layer_name);
-      gimp_drawable_set_visible (layer_ID, FALSE);
+      gimp_item_set_visible (GIMP_ITEM (gimp_drawable_get_by_id (layer_ID)), FALSE);
     }
   else if (vals->output_target == OUTPUT_TARGET_NEW_IMAGE)
     {
-      image_ID = gimp_image_new (old_width, old_height, gimp_image_base_type(image_ID));
+      image_ID = gimp_image_new (old_width, old_height, gimp_image_get_base_type(image_ID));
       gimp_image_undo_group_start(image_ID);
       layer_ID = gimp_layer_new_from_drawable (layer_ID, image_ID);
       gimp_image_insert_layer (image_ID, layer_ID, 0, -1);
       gimp_layer_translate(layer_ID, -x_off, -y_off);
-      gimp_drawable_set_visible (layer_ID, TRUE);
+      gimp_item_set_visible (GIMP_ITEM (gimp_drawable_get_by_id (layer_ID)), TRUE);
       if (vals->resize_aux_layers)
         {
           copy_aux_layer_to_new_image (image_ID, &vals->pres_layer_ID, x_off, y_off);
@@ -288,7 +288,7 @@ render_noninteractive (PlugInVals * vals,
   gint new_width, new_height;
   gint sb_width, sb_height;
   gint x_off, y_off;
-  GimpRGB colour_start, colour_end;
+  GeglColor *colour_start, *colour_end;
 #ifdef __CLOCK_IT__
   double clock1, clock2, clock3;
 #endif /* __CLOCK_IT__ */
@@ -338,8 +338,11 @@ render_noninteractive (PlugInVals * vals,
     }
 
   if (vals->output_seams) {
-    gimp_rgba_set (&colour_start, col_vals->r1, col_vals->g1, col_vals->b1, 1);
-    gimp_rgba_set (&colour_end, col_vals->r2, col_vals->g2, col_vals->b2, 1);
+    gchar color_str[64];
+    g_snprintf (color_str, sizeof(color_str), "rgba(%g,%g,%g,1.0)", col_vals->r1, col_vals->g1, col_vals->b1);
+    colour_start = gegl_color_new (color_str);
+    g_snprintf (color_str, sizeof(color_str), "rgba(%g,%g,%g,1.0)", col_vals->r2, col_vals->g2, col_vals->b2);
+    colour_end = gegl_color_new (color_str);
 
     MEM_CHECK1 (write_all_vmaps (lqr_vmap_list_start (carver), image_ID, layer_name, x_off,
                      y_off, colour_start, colour_end));
@@ -439,8 +442,8 @@ render_noninteractive (PlugInVals * vals,
   printf ("[ finish: %g ]\n\n", clock3 - clock2);
 #endif /* __CLOCK_IT__ */
 
-  gimp_drawable_set_visible (layer_ID, TRUE);
-  gimp_image_set_active_layer (image_ID, layer_ID);
+  gimp_item_set_visible (GIMP_ITEM (gimp_drawable_get_by_id (layer_ID)), TRUE);
+  lqr_image_set_active_layer (image_ID, layer_ID);
 
   gimp_layer_set_lock_alpha (layer_ID, alpha_lock);
   if (vals->resize_aux_layers == TRUE)
@@ -567,8 +570,8 @@ render_interactive (PlugInVals * vals,
   printf ("[ finish: %g ]\n\n", clock3 - clock2);
 #endif /* __CLOCK_IT__ */
 
-  gimp_drawable_set_visible (layer_ID, TRUE);
-  gimp_image_set_active_layer (image_ID, layer_ID);
+  gimp_item_set_visible (GIMP_ITEM (gimp_drawable_get_by_id (layer_ID)), TRUE);
+  lqr_image_set_active_layer (image_ID, layer_ID);
 
   return TRUE;
 }
@@ -674,8 +677,8 @@ render_flatten (PlugInVals * vals,
   printf ("[ finish: %g ]\n\n", clock3 - clock2);
 #endif /* __CLOCK_IT__ */
 
-  gimp_drawable_set_visible (layer_ID, TRUE);
-  gimp_image_set_active_layer (image_ID, layer_ID);
+  gimp_item_set_visible (GIMP_ITEM (gimp_drawable_get_by_id (layer_ID)), TRUE);
+  lqr_image_set_active_layer (image_ID, layer_ID);
 
   return TRUE;
 }
@@ -694,7 +697,7 @@ render_dump_vmap (PlugInVals * vals,
   gchar layer_name[LQR_MAX_NAME_LENGTH];
   gchar vmap_name[LQR_MAX_NAME_LENGTH];
   gint x_off, y_off;
-  GimpRGB colour_start, colour_end;
+  GeglColor *colour_start, *colour_end;
 #ifdef __CLOCK_IT__
   double clock1, clock2, clock3;
 #endif /* __CLOCK_IT__ */
@@ -733,8 +736,11 @@ render_dump_vmap (PlugInVals * vals,
   fflush (stdout);
 #endif /* __CLOCK_IT__ */
 
-  gimp_rgba_set (&colour_start, col_vals->r1, col_vals->g1, col_vals->b1, 1);
-  gimp_rgba_set (&colour_end, col_vals->r2, col_vals->g2, col_vals->b2, 1);
+  gchar color_str[64];
+  g_snprintf (color_str, sizeof(color_str), "rgba(%g,%g,%g,1.0)", col_vals->r1, col_vals->g1, col_vals->b1);
+  colour_start = gegl_color_new (color_str);
+  g_snprintf (color_str, sizeof(color_str), "rgba(%g,%g,%g,1.0)", col_vals->r2, col_vals->g2, col_vals->b2);
+  colour_end = gegl_color_new (color_str);
 
   vmap_data.image_ID = image_ID;
   vmap_data.name = vmap_name;
@@ -753,7 +759,7 @@ render_dump_vmap (PlugInVals * vals,
   printf ("[ finish: %g ]\n\n", clock3 - clock2);
 #endif /* __CLOCK_IT__ */
 
-  gimp_image_set_active_layer (image_ID, layer_ID);
+  lqr_image_set_active_layer (image_ID, layer_ID);
 
   return TRUE;
 }

@@ -33,10 +33,10 @@
 #include "preview.h"
 #include "layers_combo.h"
 
-extern GimpRGB default_pres_col;
-extern GimpRGB default_disc_col;
-extern GimpRGB default_rigmask_col;
-extern GimpRGB default_gray_col;
+extern GeglColor *default_pres_col;
+extern GeglColor *default_disc_col;
+extern GeglColor *default_rigmask_col;
+extern GeglColor *default_gray_col;
 
 /***  Local functions declariations  ***/
 
@@ -65,8 +65,8 @@ dialog_aux (PlugInImageVals * image_vals,
 {
   gint32 image_ID;
   gint32 layer_ID;
-  GimpRGB fg_colour;
-  GimpRGB saved_colour;
+  GeglColor *fg_colour;
+  GeglColor *saved_colour;
   GtkWidget *main_hbox;
   GtkWidget *info_icon;
   GtkWidget *info_label;
@@ -91,15 +91,15 @@ dialog_aux (PlugInImageVals * image_vals,
   ia_data->layer_ID = layer_ID;
 
   gimp_image_undo_group_start (image_ID);
-  gimp_image_set_active_layer(image_ID, ui_state->layer_on_edit_ID);
+  lqr_image_set_active_layer(image_ID, ui_state->layer_on_edit_ID);
   gimp_layer_set_opacity(ui_state->layer_on_edit_ID, 50);
   gimp_image_undo_group_end (image_ID);
 
   gimp_displays_flush();
 
-  fg_colour = *(colour_from_type(image_ID, ui_state->layer_on_edit_type));
-  gimp_context_get_foreground (&saved_colour);
-  gimp_context_set_foreground (&fg_colour);
+  fg_colour = colour_from_type(image_ID, ui_state->layer_on_edit_type);
+  saved_colour = gimp_context_get_foreground ();
+  gimp_context_set_foreground (fg_colour);
 
   dlg = gtk_dialog_new_with_buttons (_("GIMP LqR Plug-In - Mask editor mode"),
 			 NULL, 0,
@@ -157,7 +157,7 @@ dialog_aux (PlugInImageVals * image_vals,
 
   gimp_displays_flush();
 
-  gimp_context_set_foreground (&saved_colour);
+  gimp_context_set_foreground (saved_colour);
 
   g_free(state);
   g_free(ui_state);
@@ -177,7 +177,7 @@ callback_dialog_aux_response (GtkWidget * dialog, gint response_id, gpointer dat
   switch (response_id)
     {
       case GTK_RESPONSE_OK:
-        gimp_image_set_active_layer(ia_data->image_ID, ia_data->layer_ID);
+        lqr_image_set_active_layer(ia_data->image_ID, ia_data->layer_ID);
         gtk_window_get_position(GTK_WINDOW(dialog), &(dialog_state->x), &(dialog_state->y));
         dialog_state->has_pos = TRUE;
       default:
@@ -190,26 +190,26 @@ callback_dialog_aux_response (GtkWidget * dialog, gint response_id, gpointer dat
 
 /* Aux functions */
 
-GimpRGB * colour_from_type (gint32 image_ID, AuxLayerType layer_type)
+GeglColor * colour_from_type (gint32 image_ID, AuxLayerType layer_type)
 {
-  switch (gimp_image_base_type (image_ID))
+  switch (gimp_image_get_base_type (image_ID))
     {
       case GIMP_RGB:
         switch (layer_type)
           {
             case AUX_LAYER_PRES:
-              return &default_pres_col;
+              return default_pres_col;
             case AUX_LAYER_DISC:
-              return &default_disc_col;
+              return default_disc_col;
             case AUX_LAYER_RIGMASK:
-              return &default_rigmask_col;
+              return default_rigmask_col;
             default:
               g_message("You just found a bug");
               g_assert(0);
           }
         break;
       case GIMP_GRAY:
-        return &default_gray_col;
+        return default_gray_col;
       default:
         g_message("You just found a bug");
         g_assert(0);

@@ -193,7 +193,7 @@ write_vmap_to_layer (LqrVMap * vmap, gpointer data)
   GimpDrawable *drawable;
   gint x_off, y_off;
   gchar *name;
-  GimpRGB col_start, col_end;
+  GeglColor *col_start, *col_end;
   GimpPixelRgn rgn_out;
   guchar *outrow;
   gdouble value, rd, gr, bl, al;
@@ -261,9 +261,12 @@ write_vmap_to_layer (LqrVMap * vmap, gpointer data)
           else
             {
               value = (double) (depth + 1 - vs) / (depth + 1);
-              rd = value * col_start.r + (1 - value) * col_end.r;
-              gr = value * col_start.g + (1 - value) * col_end.g;
-              bl = value * col_start.b + (1 - value) * col_end.b;
+              gdouble start_rgba[4], end_rgba[4];
+              gegl_color_get_rgba (col_start, &start_rgba[0], &start_rgba[1], &start_rgba[2], &start_rgba[3]);
+              gegl_color_get_rgba (col_end, &end_rgba[0], &end_rgba[1], &end_rgba[2], &end_rgba[3]);
+              rd = value * start_rgba[0] + (1 - value) * end_rgba[0];
+              gr = value * start_rgba[1] + (1 - value) * end_rgba[1];
+              bl = value * start_rgba[2] + (1 - value) * end_rgba[2];
               al = 0.5 * (1 + value);
               outrow[x * bpp] = 255 * rd;
               outrow[x * bpp + 1] = 255 * gr;
@@ -291,7 +294,7 @@ write_vmap_to_layer (LqrVMap * vmap, gpointer data)
 
 LqrRetVal
 write_all_vmaps (LqrVMapList * list, gint32 image_ID, gchar * orig_name,
-                 gint x_off, gint y_off, GimpRGB col_start, GimpRGB col_end)
+                 gint x_off, gint y_off, GeglColor *col_start, GeglColor *col_end)
 {
   gchar name[LQR_MAX_NAME_LENGTH];
   VMapFuncArg data;

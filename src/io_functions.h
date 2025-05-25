@@ -33,8 +33,8 @@ struct _VMapFuncArg
   gchar *name;
   gint x_off;
   gint y_off;
-  GimpRGB colour_start;
-  GimpRGB colour_end;
+  GeglColor *colour_start;
+  GeglColor *colour_end;
   gint32 * vmap_layer_ID_p;
 };
 
@@ -50,6 +50,6 @@ LqrRetVal write_carver_to_layer (LqrCarver * r, gint32 layer_ID);
 LqrRetVal write_vmap_to_layer (LqrVMap * vmap, gpointer data);
 LqrRetVal write_all_vmaps (LqrVMapList * list, gint32 image_ID,
                            gchar * orig_name, gint x_off, gint y_off,
-                           GimpRGB col_start, GimpRGB col_end);
+                           GeglColor *col_start, GeglColor *col_end);
 
 #endif /* __IO_FUNCTIONS__ */

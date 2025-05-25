@@ -48,7 +48,7 @@ typedef struct
   gint32 *layer_ID;
   gboolean *status;
   gchar name[LQR_MAX_NAME_LENGTH];
-  GimpRGB colour;
+  GeglColor *colour;
   AuxLayerType layer_type;
   PreviewData *preview_data;
 } NewLayerData;

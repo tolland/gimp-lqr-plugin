@@ -59,4 +59,19 @@ typedef struct
   gchar selected_layer_name[VALS_MAX_NAME_LENGTH];
 } PlugInVals;
 
+/* GIMP 3.0 compatibility helpers */
+static inline void
+lqr_image_set_active_layer (gint32 image_id, gint32 layer_id)
+{
+  GimpImage *image = gimp_image_get_by_id (image_id);
+  GimpLayer *layer = gimp_layer_get_by_id (layer_id);
+  if (image && layer)
+    {
+      const GimpLayer **layers = g_new (const GimpLayer *, 1);
+      layers[0] = layer;
+      gimp_image_set_selected_layers (image, layers);
+      g_free (layers);
+    }
+}
+
 #endif /* __MAIN_COMMON_H__ */

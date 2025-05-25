@@ -156,7 +156,7 @@ dialog (PlugInImageVals * image_vals,
   GtkWidget *resize_aux_layers_button;
   GtkWidget *out_seams_hbox;
   GtkWidget *out_seams_button;
-  GimpRGB *colour;
+  GeglColor *colour;
   GtkWidget *out_seams_col_button1;
   GtkWidget *out_seams_col_button2;
   GtkWidget *scaleback_button;
@@ -182,7 +182,7 @@ dialog (PlugInImageVals * image_vals,
 
   notebook_data = g_new (NotebookData, 1);
 
-  if (!gimp_drawable_is_valid(layer_ID))
+  if (!gimp_item_is_valid(layer_ID))
     {
       layer_ID = gimp_image_get_active_layer (image_ID);
     }
@@ -193,7 +193,7 @@ dialog (PlugInImageVals * image_vals,
   preview_data.disc_combo_awaked = FALSE;
   if (ui_state->pres_status == TRUE)
     {
-      if (gimp_drawable_is_valid(state->pres_layer_ID) &&
+      if (gimp_item_is_valid(state->pres_layer_ID) &&
           gimp_drawable_is_layer(state->pres_layer_ID) &&
           (state->pres_layer_ID != layer_ID))
         {
@@ -207,7 +207,7 @@ dialog (PlugInImageVals * image_vals,
     }
   if (ui_state->disc_status == TRUE)
     {
-      if (gimp_drawable_is_valid(state->disc_layer_ID) &&
+      if (gimp_item_is_valid(state->disc_layer_ID) &&
           gimp_drawable_is_layer(state->disc_layer_ID) &&
           (state->disc_layer_ID != layer_ID))
         {
@@ -623,7 +623,7 @@ dialog (PlugInImageVals * image_vals,
 		    (gpointer) &(state->output_seams));
 
 
-  colour = g_new (GimpRGB, 1);
+  colour = gegl_color_new ("rgba(0,0,0,1)");
 
   gimp_rgba_set (colour, col_vals->r2, col_vals->g2, col_vals->b2, 1);
 
@@ -1006,10 +1006,10 @@ callback_out_seams_button (GtkWidget * button, gpointer data)
 static void
 callback_out_seams_col_button1 (GtkWidget * button, gpointer data)
 {
-  GimpRGB *colour;
+  GeglColor *colour;
   PlugInColVals * col_data = (PlugInColVals *) data;
 
-  colour = g_new (GimpRGB, 1);
+  colour = gegl_color_new ("rgba(0,0,0,1)");
   gimp_color_button_get_color (GIMP_COLOR_BUTTON
 			       (button), colour);
 
@@ -1023,10 +1023,10 @@ callback_out_seams_col_button1 (GtkWidget * button, gpointer data)
 static void
 callback_out_seams_col_button2 (GtkWidget * button, gpointer data)
 {
-  GimpRGB *colour;
+  GeglColor *colour;
   PlugInColVals * col_data = (PlugInColVals *) data;
 
-  colour = g_new (GimpRGB, 1);
+  colour = gegl_color_new ("rgba(0,0,0,1)");
   gimp_color_button_get_color (GIMP_COLOR_BUTTON
 			       (button), colour);
 
@@ -1187,7 +1187,7 @@ features_page_new (gint32 image_ID, gint32 layer_ID)
   features_are_sensitive = (num_extra_layers > 0 ? TRUE : FALSE);
 
   if (!features_are_sensitive ||
-      !gimp_drawable_is_valid(state->pres_layer_ID) ||
+      !gimp_item_is_valid(state->pres_layer_ID) ||
       !gimp_drawable_is_layer(state->pres_layer_ID) ||
       (state->pres_layer_ID == layer_ID))
     {
@@ -1196,7 +1196,7 @@ features_page_new (gint32 image_ID, gint32 layer_ID)
       preview_data.pres_combo_awaked = FALSE;
     }
   if (!features_are_sensitive ||
-      !gimp_drawable_is_valid(state->disc_layer_ID) ||
+      !gimp_item_is_valid(state->disc_layer_ID) ||
       !gimp_drawable_is_layer(state->disc_layer_ID) ||
       (state->disc_layer_ID == layer_ID))
     {
@@ -1841,7 +1841,7 @@ advanced_page_new (gint32 image_ID, gint32 layer_ID)
   preview_data.rigmask_combo_awaked = FALSE;
 
   if (!features_are_sensitive ||
-      !gimp_drawable_is_valid(state->rigmask_layer_ID) ||
+      !gimp_item_is_valid(state->rigmask_layer_ID) ||
       !gimp_drawable_is_layer(state->rigmask_layer_ID) ||
       (state->rigmask_layer_ID == layer_ID))
     {
