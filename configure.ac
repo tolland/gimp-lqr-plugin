@@ -53,15 +53,15 @@ changequote([,])dnl
 GIMP_REQUIRED_VERSION=2.8.0
 
 PKG_CHECK_MODULES(GIMP,
-  gimp-2.0 >= $GIMP_REQUIRED_VERSION gimpui-2.0 >= $GIMP_REQUIRED_VERSION)
+  gimp-3.0 >= $GIMP_REQUIRED_VERSION gimpui-3.0 >= $GIMP_REQUIRED_VERSION)
 
 AC_SUBST(GIMP_CFLAGS)
 AC_SUBST(GIMP_LIBS)
 
-GIMP_LIBDIR=`$PKG_CONFIG --variable=gimplibdir gimp-2.0`
+GIMP_LIBDIR=`$PKG_CONFIG --variable=gimplibdir gimp-3.0`
 AC_SUBST(GIMP_LIBDIR)
 
-GIMP_DATADIR=`$PKG_CONFIG --variable=gimpdatadir gimp-2.0`
+GIMP_DATADIR=`$PKG_CONFIG --variable=gimpdatadir gimp-3.0`
 AC_SUBST(GIMP_DATADIR)
 
 LQR_REQUIRED_VERSION=0.4.0
@@ -120,7 +120,7 @@ if test "x$have_gtk_2_12" != "xyes"; then
 fi
 
 AC_MSG_CHECKING([if GIMP is version 2.8.0 or newer])
-if $PKG_CONFIG --atleast-version=2.8.0 gimp-2.0; then
+if $PKG_CONFIG --atleast-version=2.8.0 gimp-3.0; then
   have_gimp_2_8=yes
 else
   have_gimp_2_8=no
