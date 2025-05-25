@@ -221,8 +221,8 @@ dialog (PlugInImageVals * image_vals,
       preview_data.disc_combo_awaked = TRUE;
     }
 
-  orig_width = gimp_drawable_width (layer_ID);
-  orig_height = gimp_drawable_height (layer_ID);
+  orig_width = gimp_drawable_get_width (layer_ID);
+  orig_height = gimp_drawable_get_height (layer_ID);
 
   if (layer_ID != ui_state->last_layer_ID)
     {
@@ -272,11 +272,11 @@ dialog (PlugInImageVals * image_vals,
 
   preview_data.dlg = dlg;
 
-  main_hbox = gtk_hbox_new (FALSE, 12);
+  main_hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 12);
   gtk_container_set_border_width (GTK_CONTAINER (main_hbox), 12);
   gtk_container_add (GTK_CONTAINER (gtk_dialog_get_content_area(GTK_DIALOG (dlg))), main_hbox);
 
-  vbox = gtk_vbox_new (FALSE, 12);
+  vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 12);
   gtk_box_pack_start (GTK_BOX (main_hbox), vbox, TRUE, TRUE, 0);
   gtk_widget_show (vbox);
 
@@ -284,7 +284,7 @@ dialog (PlugInImageVals * image_vals,
   gtk_box_pack_start (GTK_BOX (vbox), frame, FALSE, FALSE, 0);
   gtk_widget_show (frame);
 
-  vbox2 = gtk_vbox_new (FALSE, 4);
+  vbox2 = gtk_box_new (GTK_ORIENTATION_VERTICAL, 4);
   gtk_container_set_border_width (GTK_CONTAINER (vbox2), 0);
   gtk_container_add (GTK_CONTAINER (frame), vbox2);
   gtk_widget_show (vbox2);
@@ -294,20 +294,20 @@ dialog (PlugInImageVals * image_vals,
   preview_data.image_ID = image_ID;
   preview_data.vals = state;
   preview_data.ui_vals = ui_state;
-  wfactor = (gfloat) gimp_drawable_width (layer_ID) / PREVIEW_MAX_WIDTH;
-  hfactor = (gfloat) gimp_drawable_height (layer_ID) / PREVIEW_MAX_HEIGHT;
+  wfactor = (gfloat) gimp_drawable_get_width (layer_ID) / PREVIEW_MAX_WIDTH;
+  hfactor = (gfloat) gimp_drawable_get_height (layer_ID) / PREVIEW_MAX_HEIGHT;
   preview_data.factor = MAX (wfactor, hfactor);
   preview_data.factor = MAX (preview_data.factor, 1);
 
 
   preview_data.old_width = orig_width;
   preview_data.old_height = orig_height;
-  gimp_drawable_offsets (layer_ID, &(preview_data.x_off),
+  gimp_drawable_get_offsets (layer_ID, &(preview_data.x_off),
 			 &(preview_data.y_off));
   preview_data.width =
-    gimp_drawable_width (preview_data.orig_layer_ID) / preview_data.factor;
+    gimp_drawable_get_width (preview_data.orig_layer_ID) / preview_data.factor;
   preview_data.height =
-    gimp_drawable_height (preview_data.orig_layer_ID) / preview_data.factor;
+    gimp_drawable_get_height (preview_data.orig_layer_ID) / preview_data.factor;
 
 
   preview_data_create(image_ID, layer_ID, &preview_data);
@@ -320,7 +320,7 @@ dialog (PlugInImageVals * image_vals,
 
   gtk_widget_show (preview_area);
 
-  hbox = gtk_hbox_new (FALSE, 10);
+  hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 10);
   gtk_container_set_border_width (GTK_CONTAINER (hbox), 4);
   gtk_box_pack_start (GTK_BOX (vbox2), hbox, FALSE, FALSE, 0);
   gtk_widget_show (hbox);
@@ -369,12 +369,12 @@ dialog (PlugInImageVals * image_vals,
   gtk_box_pack_start (GTK_BOX (vbox), frame, FALSE, FALSE, 0);
   gtk_widget_show (frame);
 
-  vbox2 = gtk_vbox_new (FALSE, 4);
+  vbox2 = gtk_box_new (GTK_ORIENTATION_VERTICAL, 4);
   gtk_container_set_border_width (GTK_CONTAINER (vbox2), 4);
   gtk_container_add (GTK_CONTAINER (frame), vbox2);
   gtk_widget_show (vbox2);
 
-  hbox = gtk_hbox_new (FALSE, 4);
+  hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 4);
   gtk_container_set_border_width (GTK_CONTAINER (hbox), 4);
   gtk_box_pack_start (GTK_BOX (vbox2), hbox, FALSE, FALSE, 0);
   gtk_widget_show (hbox);
@@ -413,7 +413,7 @@ dialog (PlugInImageVals * image_vals,
 
   /* Aux buttons */
 
-  vbox3 = gtk_vbox_new (FALSE, 1);
+  vbox3 = gtk_box_new (GTK_ORIENTATION_VERTICAL, 1);
   gtk_box_pack_start (GTK_BOX (hbox), vbox3, FALSE, FALSE, 0);
   gtk_widget_show (vbox3);
 
@@ -464,7 +464,7 @@ dialog (PlugInImageVals * image_vals,
 			     && (ui_state->last_used_height !=
 				 -1)) ? TRUE : FALSE);
 
-  vbox3 = gtk_vbox_new (FALSE, 4);
+  vbox3 = gtk_box_new (GTK_ORIENTATION_VERTICAL, 4);
   gtk_box_pack_start (GTK_BOX (hbox), vbox3, FALSE, FALSE, 0);
   gtk_widget_show (vbox3);
 
@@ -479,7 +479,7 @@ dialog (PlugInImageVals * image_vals,
 			   NULL);
 
   interactive_button = gtk_button_new ();
-  interactive_hbox = gtk_hbox_new (FALSE, 4);
+  interactive_hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 4);
   gtk_container_add (GTK_CONTAINER (interactive_button), interactive_hbox);
   gtk_widget_show (interactive_hbox);
   interactive_icon =
@@ -518,7 +518,7 @@ dialog (PlugInImageVals * image_vals,
 
   label = gtk_label_new (_("Output"));
 
-  thispage = gtk_vbox_new (FALSE, 12);
+  thispage = gtk_box_new (GTK_ORIENTATION_VERTICAL, 12);
   gtk_container_set_border_width (GTK_CONTAINER (thispage), 12);
   gtk_notebook_append_page_menu (GTK_NOTEBOOK (notebook), thispage, label,
 				 NULL);
@@ -526,7 +526,7 @@ dialog (PlugInImageVals * image_vals,
 
   /* Output checkboxes */
 
-  vbox = gtk_vbox_new (FALSE, 4);
+  vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 4);
   gtk_box_pack_start (GTK_BOX (thispage), vbox, FALSE, FALSE, 0);
   gtk_widget_show (vbox);
 
@@ -540,7 +540,7 @@ dialog (PlugInImageVals * image_vals,
                             "or in a new image"),
 			   NULL);
 
-  output_target_hbox = gtk_hbox_new (FALSE, 4);
+  output_target_hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 4);
   gtk_container_add (GTK_CONTAINER (output_target_event_box), output_target_hbox);
   gtk_widget_show (output_target_hbox);
 
@@ -599,7 +599,7 @@ dialog (PlugInImageVals * image_vals,
 			   ("Resize the layers used as features or rigidity masks "
 			    "along with the active layer"), NULL);
 
-  out_seams_hbox = gtk_hbox_new (FALSE, 4);
+  out_seams_hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 4);
   gtk_box_pack_start (GTK_BOX (vbox), out_seams_hbox, FALSE, FALSE, 0);
   gtk_widget_show (out_seams_hbox);
 
@@ -675,8 +675,8 @@ dialog (PlugInImageVals * image_vals,
 			    "Note that this option is ignored in interactive mode"),
 			   NULL);
 
-  scaleback_mode_alignment = gtk_alignment_new(0, 0, 1, 1);
-  gtk_alignment_set_padding (GTK_ALIGNMENT (scaleback_mode_alignment), 0, 0, BOX_INDENT, 0);
+  scaleback_mode_alignment = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
+  gtk_widget_set_margin_start (scaleback_mode_alignment, BOX_INDENT);
   gtk_box_pack_start (GTK_BOX (vbox), scaleback_mode_alignment, FALSE, FALSE, 0);
   gtk_widget_show (scaleback_mode_alignment);
 
@@ -691,7 +691,7 @@ dialog (PlugInImageVals * image_vals,
 			    "or height while preserving the aspect ratio"),
 			   NULL);
 
-  scaleback_mode_hbox = gtk_hbox_new (FALSE, 4);
+  scaleback_mode_hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 4);
   gtk_container_add (GTK_CONTAINER (scaleback_mode_event_box), scaleback_mode_hbox);
   gtk_widget_show (scaleback_mode_hbox);
 
@@ -740,7 +740,7 @@ dialog (PlugInImageVals * image_vals,
 
       label = gtk_label_new (_("Mask"));
 
-      thispage = gtk_vbox_new (FALSE, 12);
+      thispage = gtk_box_new (GTK_ORIENTATION_VERTICAL, 12);
       gtk_container_set_border_width (GTK_CONTAINER (thispage), 12);
       gtk_notebook_append_page_menu (GTK_NOTEBOOK (notebook), thispage, label,
 				     NULL);
@@ -980,8 +980,8 @@ callback_resetvalues_button (GtkWidget * button, gpointer data)
   gint new_width, new_height;
   PreviewData *p_data = PREVIEW_DATA (data);
 
-  new_width = gimp_drawable_width (p_data->orig_layer_ID);
-  new_height = gimp_drawable_height (p_data->orig_layer_ID);
+  new_width = gimp_drawable_get_width (p_data->orig_layer_ID);
+  new_height = gimp_drawable_get_height (p_data->orig_layer_ID);
 
   alt_size_entry_set_refval (ALT_SIZE_ENTRY (p_data->coordinates), 0,
 			      new_width);
@@ -1169,7 +1169,7 @@ features_page_new (gint32 image_ID, gint32 layer_ID)
   /* The name of a newly created layer for preservation */
   /* (here "%s" represents the selected layer's name) */
   g_snprintf (new_pres_layer_data->name, LQR_MAX_NAME_LENGTH, _("%s pres mask"),
-              gimp_drawable_get_name (preview_data.orig_layer_ID));
+              gimp_item_get_name (preview_data.orig_layer_ID));
   gimp_rgb_set (&(new_pres_layer_data->colour), 0, 1, 0);
   new_pres_layer_data->layer_type = AUX_LAYER_PRES;
 
@@ -1179,7 +1179,7 @@ features_page_new (gint32 image_ID, gint32 layer_ID)
   /* The name of a newly created layer for discard */
   /* (here "%s" represents the selected layer's name) */
   g_snprintf (new_disc_layer_data->name, LQR_MAX_NAME_LENGTH, _("%s disc mask"),
-	    gimp_drawable_get_name (preview_data.orig_layer_ID));
+	    gimp_item_get_name (preview_data.orig_layer_ID));
   gimp_rgb_set (&(new_disc_layer_data->colour), 1, 0, 0);
   new_disc_layer_data->layer_type = AUX_LAYER_DISC;
 
@@ -1205,7 +1205,7 @@ features_page_new (gint32 image_ID, gint32 layer_ID)
       preview_data.disc_combo_awaked = FALSE;
     }
 
-  thispage = gtk_vbox_new (FALSE, 12);
+  thispage = gtk_box_new (GTK_ORIENTATION_VERTICAL, 12);
   gtk_container_set_border_width (GTK_CONTAINER (thispage), 12);
   notebook_data->features_page = thispage;
 
@@ -1222,11 +1222,11 @@ features_page_new (gint32 image_ID, gint32 layer_ID)
 	      "then press the \"Refresh\" button.\n"
 	      "Note that painting in black has no effect"));
 
-  pres_vbox = gtk_vbox_new (FALSE, 4);
+  pres_vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 4);
   gtk_container_add (GTK_CONTAINER (frame), pres_vbox);
   gtk_widget_show (pres_vbox);
 
-  hbox = gtk_hbox_new (FALSE, 4);
+  hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 4);
   gtk_box_pack_start (GTK_BOX (pres_vbox), hbox, FALSE, FALSE, 0);
   gtk_widget_show (hbox);
 
@@ -1268,7 +1268,7 @@ features_page_new (gint32 image_ID, gint32 layer_ID)
   gtk_box_pack_end (GTK_BOX (hbox), pres_edit_button, FALSE, FALSE, 0);
   gtk_widget_show (pres_edit_button);
 
-  edit_hbox = gtk_hbox_new (FALSE, 4);
+  edit_hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 4);
   gtk_container_add (GTK_CONTAINER(pres_edit_button), edit_hbox);
   gtk_widget_show (edit_hbox);
 
@@ -1287,7 +1287,7 @@ features_page_new (gint32 image_ID, gint32 layer_ID)
   gtk_box_pack_end (GTK_BOX (hbox), pres_new_button, FALSE, FALSE, 0);
   gtk_widget_show (pres_new_button);
 
-  new_hbox = gtk_hbox_new (FALSE, 4);
+  new_hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 4);
   gtk_container_add (GTK_CONTAINER(pres_new_button), new_hbox);
   gtk_widget_show (new_hbox);
 
@@ -1330,7 +1330,7 @@ features_page_new (gint32 image_ID, gint32 layer_ID)
       gtk_widget_set_tooltip_text(pres_frame_event_box2, pres_inactive_tip_string);
     }
 
-  pres_vbox2 = gtk_vbox_new (FALSE, 4);
+  pres_vbox2 = gtk_box_new (GTK_ORIENTATION_VERTICAL, 4);
   gtk_container_add (GTK_CONTAINER (pres_frame_event_box2), pres_vbox2);
   gtk_widget_show (pres_vbox2);
 
@@ -1461,11 +1461,11 @@ features_page_new (gint32 image_ID, gint32 layer_ID)
 	      "Note that painting in black has no effect"));
 
 
-  disc_vbox = gtk_vbox_new (FALSE, 4);
+  disc_vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 4);
   gtk_container_add (GTK_CONTAINER (frame), disc_vbox);
   gtk_widget_show (disc_vbox);
 
-  hbox = gtk_hbox_new (FALSE, 4);
+  hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 4);
   gtk_box_pack_start (GTK_BOX (disc_vbox), hbox, FALSE, FALSE, 0);
   gtk_widget_show (hbox);
 
@@ -1521,7 +1521,7 @@ features_page_new (gint32 image_ID, gint32 layer_ID)
   gtk_box_pack_end (GTK_BOX (hbox), disc_edit_button, FALSE, FALSE, 0);
   gtk_widget_show (disc_edit_button);
 
-  edit_hbox = gtk_hbox_new (FALSE, 4);
+  edit_hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 4);
   gtk_container_add (GTK_CONTAINER(disc_edit_button), edit_hbox);
   gtk_widget_show (edit_hbox);
 
@@ -1540,7 +1540,7 @@ features_page_new (gint32 image_ID, gint32 layer_ID)
   gtk_box_pack_end (GTK_BOX (hbox), disc_new_button, FALSE, FALSE, 0);
   gtk_widget_show (disc_new_button);
 
-  new_hbox = gtk_hbox_new (FALSE, 4);
+  new_hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 4);
   gtk_container_add (GTK_CONTAINER(disc_new_button), new_hbox);
   gtk_widget_show (new_hbox);
 
@@ -1582,7 +1582,7 @@ features_page_new (gint32 image_ID, gint32 layer_ID)
       gtk_widget_set_tooltip_text(disc_frame_event_box2, disc_inactive_tip_string);
     }
 
-  disc_vbox2 = gtk_vbox_new (FALSE, 4);
+  disc_vbox2 = gtk_box_new (GTK_ORIENTATION_VERTICAL, 4);
   gtk_container_add (GTK_CONTAINER (disc_frame_event_box2), disc_vbox2);
   gtk_widget_show (disc_vbox2);
 
@@ -1716,7 +1716,7 @@ features_page_new (gint32 image_ID, gint32 layer_ID)
 		    (callback_set_disc_warning), (gpointer) (&preview_data));
 
 
-  hbox = gtk_hbox_new (FALSE, 4);
+  hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 4);
   gtk_box_pack_start (GTK_BOX (disc_vbox2), hbox, FALSE, FALSE, 0);
   gtk_widget_show (hbox);
 
@@ -1832,7 +1832,7 @@ advanced_page_new (gint32 image_ID, gint32 layer_ID)
   /* (here "%s" represents the selected layer's name) */
   g_snprintf (new_rigmask_layer_data->name, LQR_MAX_NAME_LENGTH,
 	    _("%s rigidity mask"),
-	    gimp_drawable_get_name (preview_data.orig_layer_ID));
+	    gimp_item_get_name (preview_data.orig_layer_ID));
   gimp_rgb_set (&(new_rigmask_layer_data->colour), 0, 0, 1);
   new_rigmask_layer_data->layer_type = AUX_LAYER_RIGMASK;
 
@@ -1849,7 +1849,7 @@ advanced_page_new (gint32 image_ID, gint32 layer_ID)
       state->rigmask_layer_ID = 0;
     }
 
-  thispage = gtk_vbox_new (FALSE, 12);
+  thispage = gtk_box_new (GTK_ORIENTATION_VERTICAL, 12);
   gtk_container_set_border_width (GTK_CONTAINER (thispage), 12);
   gtk_widget_show (thispage);
 
@@ -1880,7 +1880,7 @@ advanced_page_new (gint32 image_ID, gint32 layer_ID)
 	      "then press the \"Refresh\" button.\n"
 	      "Note that painting in black has no effect"));
 
-  rigmask_vbox = gtk_vbox_new (FALSE, 4);
+  rigmask_vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 4);
   gtk_container_add (GTK_CONTAINER (seams_control_expander), rigmask_vbox);
   gtk_widget_show (rigmask_vbox);
 
@@ -1920,7 +1920,7 @@ advanced_page_new (gint32 image_ID, gint32 layer_ID)
 		    &state->rigidity);
 
 
-  hbox = gtk_hbox_new (FALSE, 4);
+  hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 4);
   gtk_box_pack_start (GTK_BOX (rigmask_vbox), hbox, FALSE, FALSE, 0);
   gtk_widget_show (hbox);
 
@@ -1974,7 +1974,7 @@ advanced_page_new (gint32 image_ID, gint32 layer_ID)
   gtk_box_pack_end (GTK_BOX (hbox), rigmask_edit_button, FALSE, FALSE, 0);
   gtk_widget_show (rigmask_edit_button);
 
-  edit_hbox = gtk_hbox_new (FALSE, 4);
+  edit_hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 4);
   gtk_container_add (GTK_CONTAINER(rigmask_edit_button), edit_hbox);
   gtk_widget_show (edit_hbox);
 
@@ -1993,7 +1993,7 @@ advanced_page_new (gint32 image_ID, gint32 layer_ID)
   gtk_box_pack_end (GTK_BOX (hbox), rigmask_new_button, FALSE, FALSE, 0);
   gtk_widget_show (rigmask_new_button);
 
-  new_hbox = gtk_hbox_new (FALSE, 4);
+  new_hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 4);
   gtk_container_add (GTK_CONTAINER(rigmask_new_button), new_hbox);
   gtk_widget_show (new_hbox);
 
@@ -2034,7 +2034,7 @@ advanced_page_new (gint32 image_ID, gint32 layer_ID)
       gtk_widget_set_tooltip_text(rigmask_frame_event_box2, rigmask_inactive_tip_string);
     }
 
-  rigmask_vbox2 = gtk_vbox_new (FALSE, 4);
+  rigmask_vbox2 = gtk_box_new (GTK_ORIENTATION_VERTICAL, 4);
   gtk_container_add (GTK_CONTAINER (rigmask_frame_event_box2), rigmask_vbox2);
   gtk_widget_show (rigmask_vbox2);
 
@@ -2125,7 +2125,7 @@ advanced_page_new (gint32 image_ID, gint32 layer_ID)
 			    "the relevance of each pixel"),
 			   NULL);
 
-  hbox = gtk_hbox_new (FALSE, 4);
+  hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 4);
   gtk_container_set_border_width (GTK_CONTAINER (hbox), 4);
   gtk_container_add (GTK_CONTAINER (nrg_event_box), hbox);
   gtk_widget_show (hbox);
@@ -2164,7 +2164,7 @@ advanced_page_new (gint32 image_ID, gint32 layer_ID)
   gtk_box_pack_start (GTK_BOX (thispage), operations_expander, FALSE, FALSE, 0);
   gtk_widget_show (operations_expander);
 
-  operations_vbox = gtk_vbox_new (FALSE, 4);
+  operations_vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 4);
   gtk_container_add (GTK_CONTAINER(operations_expander), operations_vbox);
   gtk_widget_show (operations_vbox);
 
@@ -2201,7 +2201,7 @@ advanced_page_new (gint32 image_ID, gint32 layer_ID)
 			   _("This controls the order of operations "
 			     "if rescaling in both directions"), NULL);
 
-  hbox = gtk_hbox_new (FALSE, 4);
+  hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 4);
   gtk_container_set_border_width (GTK_CONTAINER (hbox), 4);
   gtk_container_add (GTK_CONTAINER (res_order_event_box), hbox);
   gtk_widget_show (hbox);

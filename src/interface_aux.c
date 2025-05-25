@@ -118,7 +118,7 @@ dialog_aux (PlugInImageVals * image_vals,
   g_signal_connect (dlg, "response", G_CALLBACK (callback_dialog_aux_response),
 		    (gpointer) ia_data);
 
-  main_hbox = gtk_hbox_new (FALSE, 12);
+  main_hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 12);
   gtk_container_set_border_width (GTK_CONTAINER (main_hbox), 12);
   gtk_container_add (GTK_CONTAINER (GTK_DIALOG (dlg)->vbox), main_hbox);
 

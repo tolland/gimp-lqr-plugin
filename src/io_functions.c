@@ -38,8 +38,8 @@ rgb_buffer_from_layer (gint32 layer_ID)
 
   gimp_progress_init (_("Parsing layer..."));
 
-  w = gimp_drawable_width (layer_ID);
-  h = gimp_drawable_height (layer_ID);
+  w = gimp_drawable_get_width (layer_ID);
+  h = gimp_drawable_get_height (layer_ID);
 
   bpp = gimp_drawable_bpp (layer_ID);
 
@@ -80,12 +80,12 @@ update_bias (LqrCarver * r, gint32 layer_ID, gint bias_factor,
       return LQR_OK;
     }
 
-  gimp_drawable_offsets (layer_ID, &x_off, &y_off);
+  gimp_drawable_get_offsets (layer_ID, &x_off, &y_off);
   x_off -= base_x_off;
   y_off -= base_y_off;
 
-  w = gimp_drawable_width (layer_ID);
-  h = gimp_drawable_height (layer_ID);
+  w = gimp_drawable_get_width (layer_ID);
+  h = gimp_drawable_get_height (layer_ID);
 
   bpp = gimp_drawable_bpp (layer_ID);
 
@@ -111,12 +111,12 @@ set_rigmask (LqrCarver * r, gint32 layer_ID, gint base_x_off, gint base_y_off)
       return LQR_OK;
     }
 
-  gimp_drawable_offsets (layer_ID, &x_off, &y_off);
+  gimp_drawable_get_offsets (layer_ID, &x_off, &y_off);
   x_off -= base_x_off;
   y_off -= base_y_off;
 
-  w = gimp_drawable_width (layer_ID);
-  h = gimp_drawable_height (layer_ID);
+  w = gimp_drawable_get_width (layer_ID);
+  h = gimp_drawable_get_height (layer_ID);
 
   bpp = gimp_drawable_bpp (layer_ID);
 
@@ -146,8 +146,8 @@ write_carver_to_layer (LqrCarver * r, gint32 layer_ID)
 
   drawable = gimp_drawable_get (layer_ID);
 
-  w = gimp_drawable_width (layer_ID);
-  h = gimp_drawable_height (layer_ID);
+  w = gimp_drawable_get_width (layer_ID);
+  h = gimp_drawable_get_height (layer_ID);
 
   gimp_pixel_rgn_init (&rgn_out, drawable, 0, 0, w, h, TRUE, TRUE);
 
@@ -228,7 +228,7 @@ write_vmap_to_layer (LqrVMap * vmap, gpointer data)
                         GIMP_NORMAL_MODE);
       gimp_drawable_fill (seam_layer_ID, GIMP_TRANSPARENT_FILL);
       gimp_image_insert_layer (image_ID, seam_layer_ID, 0, -1);
-      gimp_layer_translate (seam_layer_ID, x_off, y_off);
+      gimp_layer_set_offsets (GIMP_LAYER (gimp_drawable_get_by_id (seam_layer_ID)), x_off, y_off);
       if (seam_layer_p)
         {
           *seam_layer_p = seam_layer_ID;

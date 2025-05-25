@@ -207,7 +207,7 @@ update_info_aux_use_icons(PlugInVals *vals, PlugInUIVals *ui_vals, GtkWidget *pr
   if (ui_vals->pres_status == TRUE)
     {
       g_snprintf(help_text_common, MAX_STRING_SIZE, _("Layer in use as preservation mask: "));
-      g_snprintf(help_text, MAX_STRING_SIZE, "%s %s", help_text_common, gimp_drawable_get_name(vals->pres_layer_ID));
+      g_snprintf(help_text, MAX_STRING_SIZE, "%s %s", help_text_common, gimp_item_get_name(vals->pres_layer_ID));
       gimp_help_set_help_data (pres_use_image,
                                help_text,
                                NULL);
@@ -226,7 +226,7 @@ update_info_aux_use_icons(PlugInVals *vals, PlugInUIVals *ui_vals, GtkWidget *pr
   if (ui_vals->disc_status == TRUE)
     {
       g_snprintf(help_text_common, MAX_STRING_SIZE, _("Layer in use as discard mask: "));
-      g_snprintf(help_text, MAX_STRING_SIZE, "%s %s", help_text_common, gimp_drawable_get_name(vals->disc_layer_ID));
+      g_snprintf(help_text, MAX_STRING_SIZE, "%s %s", help_text_common, gimp_item_get_name(vals->disc_layer_ID));
       gimp_help_set_help_data (disc_use_image,
                                help_text,
                                NULL);
@@ -244,7 +244,7 @@ update_info_aux_use_icons(PlugInVals *vals, PlugInUIVals *ui_vals, GtkWidget *pr
   if (ui_vals->rigmask_status == TRUE)
     {
       g_snprintf(help_text_common, MAX_STRING_SIZE, _("Layer in use as rigidity mask: "));
-      g_snprintf(help_text, MAX_STRING_SIZE, "%s %s", help_text_common, gimp_drawable_get_name(vals->rigmask_layer_ID));
+      g_snprintf(help_text, MAX_STRING_SIZE, "%s %s", help_text_common, gimp_item_get_name(vals->rigmask_layer_ID));
       gimp_help_set_help_data (rigmask_use_image,
                                help_text,
                                NULL);

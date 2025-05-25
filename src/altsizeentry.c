@@ -88,7 +88,7 @@ static void   alt_size_entry_unit_callback   (GtkWidget          *widget,
                                                AltSizeEntry      *sizeentry);
 
 
-G_DEFINE_TYPE (AltSizeEntry, alt_size_entry, GTK_TYPE_TABLE)
+G_DEFINE_TYPE (AltSizeEntry, alt_size_entry, GTK_TYPE_GRID)
 
 #define parent_class alt_size_entry_parent_class
 
@@ -205,7 +205,7 @@ alt_size_entry_finalize (GObject *object)
  *
  * 7. alt_size_entry_set_refval() (or alt_size_entry_set_value())
  *
- * The #AltSizeEntry is derived from #GtkTable and will have
+ * The #AltSizeEntry is derived from #GtkGrid and will have
  * an empty border of one cell width on each side plus an empty column left
  * of the #GimpUnitMenu to allow the caller to add labels or a
  * #GimpChainButton.
@@ -236,14 +236,7 @@ alt_size_entry_new (gint                       number_of_fields,
   gse->update_policy    = update_policy;
 
   /** CUSTOMIZATION BEGIN **/
-  /*
-  gtk_table_resize (GTK_TABLE (gse),
-                    1 + gse->show_refval + 2,
-                    number_of_fields + 1 + 3);
-                    */
-  gtk_table_resize (GTK_TABLE (gse),
-                    1 + gse->show_refval + 3,
-                    number_of_fields + 1 + 2);
+  /* GtkGrid doesn't need explicit resizing */
   /** CUSTOMIZATION END **/
 
   /*  show the 'pixels' menu entry only if we are a 'size' sizeentry and
@@ -306,9 +299,8 @@ alt_size_entry_new (gint                       number_of_fields,
                                          spinbutton_width, -1);
         }
 
-      gtk_table_attach_defaults (GTK_TABLE (gse), gsef->value_spinbutton,
-                                 i+1, i+2,
-                                 gse->show_refval+1, gse->show_refval+2);
+      gtk_grid_attach (GTK_GRID (gse), gsef->value_spinbutton,
+                       i+1, gse->show_refval+1, 1, 1);
       g_signal_connect (gsef->value_adjustment, "value-changed",
                         G_CALLBACK (alt_size_entry_value_callback),
                         gsef);
@@ -325,8 +317,8 @@ alt_size_entry_new (gint                       number_of_fields,
 
           gtk_widget_set_size_request (gsef->refval_spinbutton,
                                        spinbutton_width, -1);
-          gtk_table_attach_defaults (GTK_TABLE (gse), gsef->refval_spinbutton,
-                                     i + 1, i + 2, 1, 2);
+          gtk_grid_attach (GTK_GRID (gse), gsef->refval_spinbutton,
+                           i + 1, 1, 1, 1);
           g_signal_connect (gsef->refval_adjustment,
                             "value-changed",
                             G_CALLBACK (alt_size_entry_refval_callback),
@@ -352,10 +344,8 @@ alt_size_entry_new (gint                       number_of_fields,
                     gse->show_refval+1, gse->show_refval+2,
                     GTK_SHRINK | GTK_FILL, GTK_SHRINK | GTK_FILL, 0, 0);
                     */
-  gtk_table_attach (GTK_TABLE (gse), gse->unitmenu,
-                    0, 2,
-                    gse->show_refval+2, gse->show_refval+3,
-                    GTK_SHRINK | GTK_FILL, GTK_SHRINK | GTK_FILL, 0, 0);
+  gtk_grid_attach (GTK_GRID (gse), gse->unitmenu,
+                   0, gse->show_refval+2, 2, 1);
   /** CUSTOMIZATION END **/
 
   g_signal_connect (gse->unitmenu, "unit-changed",
@@ -501,10 +491,10 @@ alt_size_entry_attach_label (AltSizeEntry *gse,
       g_list_free (children);
     }
 
-  gtk_misc_set_alignment (GTK_MISC (label), alignment, 0.5);
+  gtk_widget_set_halign (label, alignment < 0.5 ? GTK_ALIGN_START : (alignment > 0.5 ? GTK_ALIGN_END : GTK_ALIGN_CENTER));
+  gtk_widget_set_valign (label, GTK_ALIGN_CENTER);
 
-  gtk_table_attach (GTK_TABLE (gse), label, column, column+1, row, row+1,
-                    GTK_SHRINK | GTK_FILL, GTK_SHRINK | GTK_FILL, 0, 0);
+  gtk_grid_attach (GTK_GRID (gse), label, column, row, 1, 1);
   gtk_widget_show (label);
 
   return label;
@@ -1223,7 +1213,7 @@ alt_size_entry_set_pixel_digits (AltSizeEntry *gse,
  * @gse: The sizeentry you want to grab the keyboard focus.
  *
  * This function is rather ugly and just a workaround for the fact that
- * it's impossible to implement gtk_widget_grab_focus() for a #GtkTable.
+ * it's impossible to implement gtk_widget_grab_focus() for a #GtkGrid.
  **/
 void
 alt_size_entry_grab_focus (AltSizeEntry *gse)

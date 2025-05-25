@@ -147,11 +147,11 @@ render_init_carver (PlugInImageVals * image_vals,
   UNMASK (layer_ID);
 
   g_snprintf (layer_name, LQR_MAX_NAME_LENGTH, "%s",
-            gimp_drawable_get_name (layer_ID));
+            gimp_item_get_name (layer_ID));
 
-  old_width = gimp_drawable_width (layer_ID);
-  old_height = gimp_drawable_height (layer_ID);
-  gimp_drawable_offsets (layer_ID, &x_off, &y_off);
+  old_width = gimp_drawable_get_width (layer_ID);
+  old_height = gimp_drawable_get_height (layer_ID);
+  gimp_drawable_get_offsets (layer_ID, &x_off, &y_off);
   bpp = gimp_drawable_bpp (layer_ID);
 
   new_width = vals->new_width;
@@ -181,7 +181,7 @@ render_init_carver (PlugInImageVals * image_vals,
       gimp_image_undo_group_start(image_ID);
       layer_ID = gimp_layer_new_from_drawable (layer_ID, image_ID);
       gimp_image_insert_layer (image_ID, layer_ID, 0, -1);
-      gimp_layer_translate(layer_ID, -x_off, -y_off);
+      gimp_layer_set_offsets (GIMP_LAYER (gimp_drawable_get_by_id (layer_ID)), 0, 0);
       gimp_item_set_visible (GIMP_ITEM (gimp_drawable_get_by_id (layer_ID)), TRUE);
       if (vals->resize_aux_layers)
         {
@@ -302,11 +302,11 @@ render_noninteractive (PlugInVals * vals,
   alpha_lock_rigmask = carver_data->alpha_lock_rigmask;
 
   g_snprintf (layer_name, LQR_MAX_NAME_LENGTH, "%s",
-              gimp_drawable_get_name (layer_ID));
+              gimp_item_get_name (layer_ID));
 
-  old_width = gimp_drawable_width (layer_ID);
-  old_height = gimp_drawable_height (layer_ID);
-  gimp_drawable_offsets (layer_ID, &x_off, &y_off);
+  old_width = gimp_drawable_get_width (layer_ID);
+  old_height = gimp_drawable_get_height (layer_ID);
+  gimp_drawable_get_offsets (layer_ID, &x_off, &y_off);
 
   new_width = vals->new_width;
   new_height = vals->new_height;
@@ -507,11 +507,11 @@ render_interactive (PlugInVals * vals,
   UNMASK (layer_ID);
 
   g_snprintf (layer_name, LQR_MAX_NAME_LENGTH, "%s",
-            gimp_drawable_get_name (layer_ID));
+            gimp_item_get_name (layer_ID));
 
-  old_width = gimp_drawable_width (layer_ID);
-  old_height = gimp_drawable_height (layer_ID);
-  gimp_drawable_offsets (layer_ID, &x_off, &y_off);
+  old_width = gimp_drawable_get_width (layer_ID);
+  old_height = gimp_drawable_get_height (layer_ID);
+  gimp_drawable_get_offsets (layer_ID, &x_off, &y_off);
 
   new_width = vals->new_width;
   new_height = vals->new_height;
@@ -617,11 +617,11 @@ render_flatten (PlugInVals * vals,
   UNMASK (layer_ID);
 
   g_snprintf (layer_name, LQR_MAX_NAME_LENGTH, "%s",
-            gimp_drawable_get_name (layer_ID));
+            gimp_item_get_name (layer_ID));
 
-  old_width = gimp_drawable_width (layer_ID);
-  old_height = gimp_drawable_height (layer_ID);
-  gimp_drawable_offsets (layer_ID, &x_off, &y_off);
+  old_width = gimp_drawable_get_width (layer_ID);
+  old_height = gimp_drawable_get_height (layer_ID);
+  gimp_drawable_get_offsets (layer_ID, &x_off, &y_off);
 
   gimp_layer_set_lock_alpha (layer_ID, FALSE);
 
@@ -717,9 +717,9 @@ render_dump_vmap (PlugInVals * vals,
   UNMASK (layer_ID);
 
   g_snprintf (layer_name, LQR_MAX_NAME_LENGTH, "%s",
-            gimp_drawable_get_name (layer_ID));
+            gimp_item_get_name (layer_ID));
 
-  gimp_drawable_offsets (layer_ID, &x_off, &y_off);
+  gimp_drawable_get_offsets (layer_ID, &x_off, &y_off);
 
 #ifdef __CLOCK_IT__
   clock1 = (double) clock () / CLOCKS_PER_SEC;
@@ -830,7 +830,7 @@ static void
 set_tiles (gint width)
 {
   gint ntiles = width / gimp_tile_width () + 1;
-  gimp_tile_cache_size ((gimp_tile_width () * gimp_tile_height () * ntiles *
+  gimp_tile_cache_set_size ((gimp_tile_width () * gimp_tile_height () * ntiles *
                          4 * 2) / 1024 + 1);
 }
 
@@ -858,7 +858,7 @@ static gboolean copy_aux_layer_to_new_image (gint32 image_ID, gint32 * layer_ID_
     {
       new_layer_ID = gimp_layer_new_from_drawable (old_layer_ID, image_ID);
       gimp_image_insert_layer (image_ID, new_layer_ID, 0, -1);
-      gimp_layer_translate (new_layer_ID, -x_off, -y_off);
+      gimp_layer_set_offsets (GIMP_LAYER (gimp_drawable_get_by_id (new_layer_ID)), 0, 0);
     }
   else
     {
@@ -877,7 +877,7 @@ resize_unlock_aux_layer (gint32 layer_ID, gint width, gint height, gint x_off, g
     {
       alpha_lock = gimp_layer_get_lock_alpha (layer_ID);
       gimp_layer_set_lock_alpha (layer_ID, FALSE);
-      gimp_drawable_offsets (layer_ID, &aux_x_off, &aux_y_off);
+      gimp_drawable_get_offsets (layer_ID, &aux_x_off, &aux_y_off);
       gimp_layer_resize (layer_ID, width, height,
                          aux_x_off - x_off, aux_y_off - y_off);
     }
@@ -925,7 +925,7 @@ write_aux_carver (LqrCarverList ** carver_list_p, gint32 layer_ID, gint width, g
 static void
 scale_layer_translated (gint32 layer_ID, gint width, gint height, gint x_off, gint y_off)
 {
-  gimp_layer_translate (layer_ID, -x_off, -y_off);
+  gimp_layer_set_offsets (GIMP_LAYER (gimp_drawable_get_by_id (layer_ID)), 0, 0);
   gimp_layer_scale (layer_ID, width, height, FALSE);
-  gimp_layer_translate (layer_ID, x_off, y_off);
+  gimp_layer_set_offsets (GIMP_LAYER (gimp_drawable_get_by_id (layer_ID)), x_off, y_off);
 }

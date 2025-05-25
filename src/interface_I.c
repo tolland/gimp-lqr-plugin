@@ -134,8 +134,8 @@ dialog_I (PlugInImageVals * image_vals,
 
   dialog_state = dialog_vals;
 
-  orig_width = gimp_drawable_width (layer_ID);
-  orig_height = gimp_drawable_height (layer_ID);
+  orig_width = gimp_drawable_get_width (layer_ID);
+  orig_height = gimp_drawable_get_height (layer_ID);
 
   g_assert (gimp_drawable_is_layer (layer_ID) == TRUE);
 
@@ -164,11 +164,11 @@ dialog_I (PlugInImageVals * image_vals,
   g_signal_connect (dlg, "response", G_CALLBACK (callback_dialog_I_response),
 		    (gpointer) (NULL));
 
-  main_hbox = gtk_hbox_new (FALSE, 12);
+  main_hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 12);
   gtk_container_set_border_width (GTK_CONTAINER (main_hbox), 12);
   gtk_container_add (GTK_CONTAINER (gtk_dialog_get_content_area(GTK_DIALOG (dlg))), main_hbox);
 
-  vbox = gtk_vbox_new (FALSE, 12);
+  vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 12);
   gtk_box_pack_start (GTK_BOX (main_hbox), vbox, TRUE, TRUE, 0);
   gtk_widget_show (vbox);
 
@@ -178,11 +178,11 @@ dialog_I (PlugInImageVals * image_vals,
   gtk_box_pack_start (GTK_BOX (vbox), frame, TRUE, TRUE, 0);
   gtk_widget_show (frame);
 
-  hbox = gtk_hbox_new (FALSE, 4);
+  hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 4);
   gtk_container_add (GTK_CONTAINER (frame), hbox);
   gtk_widget_show (hbox);
 
-  vbox3 = gtk_vbox_new (FALSE, 4);
+  vbox3 = gtk_box_new (GTK_ORIENTATION_VERTICAL, 4);
   gtk_box_pack_start (GTK_BOX (hbox), vbox3, FALSE, FALSE, 0);
   gtk_widget_show (vbox3);
 
@@ -216,7 +216,7 @@ dialog_I (PlugInImageVals * image_vals,
 
   /* Aux layer usage icons */
 
-  hbox2 = gtk_hbox_new (FALSE, 10);
+  hbox2 = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 10);
   gtk_container_set_border_width (GTK_CONTAINER (hbox2), 4);
   gtk_box_pack_start (GTK_BOX (vbox3), hbox2, FALSE, FALSE, 0);
   gtk_widget_show (hbox2);
@@ -254,7 +254,7 @@ dialog_I (PlugInImageVals * image_vals,
 
   /* Reset size button */
 
-  vbox2 = gtk_vbox_new (FALSE, 4);
+  vbox2 = gtk_box_new (GTK_ORIENTATION_VERTICAL, 4);
   gtk_box_pack_end (GTK_BOX (hbox), vbox2, FALSE, FALSE, 0);
   gtk_widget_show (vbox2);
 
@@ -287,11 +287,11 @@ dialog_I (PlugInImageVals * image_vals,
   gtk_box_pack_start (GTK_BOX (main_hbox), v_separator, TRUE, TRUE, 0);
   gtk_widget_show(v_separator);
 
-  vbox = gtk_vbox_new (FALSE, 4);
+  vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 4);
   gtk_box_pack_start (GTK_BOX (main_hbox), vbox, FALSE, FALSE, 0);
   gtk_widget_show (vbox);
 
-  hbox2 = gtk_hbox_new (FALSE, 4);
+  hbox2 = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 4);
   gtk_box_pack_start (GTK_BOX (vbox), hbox2, FALSE, FALSE, 0);
   gtk_widget_show (hbox2);
 
@@ -301,11 +301,11 @@ dialog_I (PlugInImageVals * image_vals,
   gtk_box_pack_start (GTK_BOX (hbox2), info_title_label, FALSE, FALSE, 0);
   gtk_widget_show (info_title_label);
 
-  hbox = gtk_hbox_new (FALSE, 12);
+  hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 12);
   gtk_box_pack_start (GTK_BOX (vbox), hbox, FALSE, FALSE, 0);
   gtk_widget_show (hbox);
 
-  vbox2 = gtk_vbox_new (FALSE, 4);
+  vbox2 = gtk_box_new (GTK_ORIENTATION_VERTICAL, 4);
   gtk_box_pack_start (GTK_BOX (hbox), vbox2, FALSE, FALSE, 0);
   gtk_widget_show (vbox2);
 

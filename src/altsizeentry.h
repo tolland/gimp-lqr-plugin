@@ -46,7 +46,7 @@ typedef struct _AltSizeEntryField  AltSizeEntryField;
 
 struct _AltSizeEntry
 {
-  GtkTable   parent_instance;
+  GtkGrid    parent_instance;
 
   GSList    *fields;
   gint       number_of_fields;
@@ -64,7 +64,7 @@ typedef struct _AltSizeEntry AltSizeEntry;
 
 struct _AltSizeEntryClass
 {
-  GtkTableClass  parent_class;
+  GtkGridClass   parent_class;
 
   void (* value_changed)  (AltSizeEntry);// *gse);
   void (* refval_changed) (AltSizeEntry *gse);

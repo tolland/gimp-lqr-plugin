@@ -108,13 +108,13 @@ combo_get_active (GtkWidget * combo, PreviewData * p_data,
         {
           g_object_unref (G_OBJECT (*pixbuf_add));
         }
-      gimp_drawable_offsets (*layer_ID_add, &(size_info->x_off), &(size_info->y_off));
+      gimp_drawable_get_offsets (*layer_ID_add, &(size_info->x_off), &(size_info->y_off));
 
       size_info->x_off -= p_data->x_off;
       size_info->y_off -= p_data->y_off;
 
-      size_info->width = gimp_drawable_width(*layer_ID_add);
-      size_info->height = gimp_drawable_height(*layer_ID_add);
+      size_info->width = gimp_drawable_get_width(*layer_ID_add);
+      size_info->height = gimp_drawable_get_height(*layer_ID_add);
 
       size_info_scale(size_info, p_data->factor);
 
@@ -200,7 +200,7 @@ callback_new_mask_button (GtkWidget * button, gpointer data)
 		    image_type, 50, GIMP_NORMAL_MODE);
   gimp_image_insert_layer (p_data->image_ID, layer_ID, 0, -1);
   gimp_drawable_fill (layer_ID, GIMP_TRANSPARENT_FILL);
-  gimp_layer_translate (layer_ID, p_data->x_off, p_data->y_off);
+  gimp_layer_set_offsets (GIMP_LAYER (gimp_drawable_get_by_id (layer_ID)), p_data->x_off, p_data->y_off);
   gimp_image_undo_group_end (p_data->image_ID);
   *(nl_data->layer_ID) = layer_ID;
   *(nl_data->status) = TRUE;
@@ -307,8 +307,8 @@ guess_new_size (GtkWidget * button, PreviewData * p_data, GuessDir direction)
 
   LAYER_CHECK_ACTION(disc_layer_ID, gtk_dialog_response (GTK_DIALOG (dlg), RESPONSE_REFRESH), old_size);
 
-  width = gimp_drawable_width (disc_layer_ID);
-  height = gimp_drawable_height (disc_layer_ID);
+  width = gimp_drawable_get_width (disc_layer_ID);
+  height = gimp_drawable_get_height (disc_layer_ID);
   has_alpha = gimp_drawable_has_alpha (disc_layer_ID);
   bpp = gimp_drawable_bpp (disc_layer_ID);
   c_bpp = bpp - (has_alpha ? 1 : 0);
@@ -317,7 +317,7 @@ guess_new_size (GtkWidget * button, PreviewData * p_data, GuessDir direction)
   gimp_pixel_rgn_init (&rgn_in, drawable, 0, 0, width, height, FALSE, FALSE);
 
 
-  gimp_drawable_offsets (disc_layer_ID, &x_off, &y_off);
+  gimp_drawable_get_offsets (disc_layer_ID, &x_off, &y_off);
 
   x_off -= p_data->x_off;
   y_off -= p_data->y_off;

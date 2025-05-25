@@ -610,7 +610,7 @@ layer_from_name(gint32 image_ID, gchar * name)
 
   layer_list = gimp_image_get_layers(image_ID, &num_layers);
   for (i = 0; i < num_layers; i++) {
-    if (strncmp(name, gimp_drawable_get_name(layer_list[i]), VALS_MAX_NAME_LENGTH) == 0)
+    if (strncmp(name, gimp_item_get_name(layer_list[i]), VALS_MAX_NAME_LENGTH) == 0)
       {
         return layer_list[i];
       }
@@ -627,7 +627,7 @@ set_aux_layer_name(gint layer_ID, gboolean status, gchar * name)
     }
   else
     {
-      g_strlcpy(name, gimp_drawable_get_name(layer_ID), VALS_MAX_NAME_LENGTH);
+      g_strlcpy(name, gimp_item_get_name(layer_ID), VALS_MAX_NAME_LENGTH);
     }
 }
 
