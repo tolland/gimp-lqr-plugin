@@ -43,18 +43,22 @@ static void set_aux_layer_name(gint layer_ID, gboolean status, gchar * name);
 static void save_vals (void);
 static void retrieve_vals (void);
 static void retrieve_vals_use_aux_layers_names (gint32 image_ID);
-static void noninteractive_read_vals (const GimpParam * param);
+static void noninteractive_read_vals (GimpProcedureConfig *config, GimpImage *image);
 static void install_custom_signals();
 static void cancel_work_on_aux_layer(void);
 #if defined(G_OS_WIN32)
 static gchar * get_gimp_share_directory_on_windows();
 #endif
 
-static void query (void);
-static void run (const gchar * name,
-                 gint nparams,
-                 const GimpParam * param,
-                 gint * nreturn_vals, GimpParam ** return_vals);
+static GimpProcedure * create_procedure (GimpPlugIn  *plug_in,
+                                         const gchar *name);
+static GimpValueArray * lqr_run (GimpProcedure        *procedure,
+                                  GimpRunMode           run_mode,
+                                  GimpImage            *image,
+                                  gint                  n_drawables,
+                                  GimpDrawable        **drawables,
+                                  const GimpValueArray *args,
+                                  gpointer              run_data);
 
 
 /*  Local variables  */
@@ -127,34 +131,35 @@ const PlugInDialogVals default_dialog_vals = {
   0,            /* dialog root position y */
 };
 
-const GimpRGB default_pres_col = {
-  0.0,
-  1.0,
-  0.0,
-  1.0
-};
+static GeglColor *default_pres_col = NULL;
 
-const GimpRGB default_disc_col = {
-  1.0,
-  0.0,
-  0.0,
-  1.0
-};
+static GeglColor *default_disc_col = NULL;
 
-const GimpRGB default_rigmask_col = {
-  0.0,
-  0.0,
-  1.0,
-  1.0
-};
+static GeglColor *default_rigmask_col = NULL;
 
-const GimpRGB default_gray_col = {
-  0.333333,
-  0.333333,
-  0.333333,
-  1.0
-};
+static GeglColor *default_gray_col = NULL;
 
+/* Initialize default colors */
+static void
+initialize_default_colors (void)
+{
+  if (!default_pres_col)
+    {
+      default_pres_col = gegl_color_new ("rgb(0.0, 1.0, 0.0)");
+    }
+  if (!default_disc_col)
+    {
+      default_disc_col = gegl_color_new ("rgb(1.0, 0.0, 0.0)");
+    }
+  if (!default_rigmask_col)
+    {
+      default_rigmask_col = gegl_color_new ("rgb(0.0, 0.0, 1.0)");
+    }
+  if (!default_gray_col)
+    {
+      default_gray_col = gegl_color_new ("rgb(0.333333, 0.333333, 0.333333)");
+    }
+}
 
 static PlugInVals vals;
 static PlugInImageVals image_vals;
@@ -162,83 +167,238 @@ static PlugInDrawableVals drawable_vals;
 static PlugInUIVals ui_vals;
 static PlugInColVals col_vals;
 static PlugInDialogVals dialog_vals;
-static GimpParamDef args[] = {
-  {GIMP_PDB_INT32, "run_mode", "Interactive, non-interactive"},
-  {GIMP_PDB_IMAGE, "image", "Input image"},
-  {GIMP_PDB_DRAWABLE, "drawable", "Input drawable"},
-  {GIMP_PDB_INT32, "width", "Final width"},
-  {GIMP_PDB_INT32, "height", "Final height"},
-  {GIMP_PDB_INT32, "pres_layer", "Layer that marks preserved areas"},
-  {GIMP_PDB_INT32, "pres_coeff", "Preservation coefficient"},
-  {GIMP_PDB_INT32, "disc_layer", "Layer that marks areas to discard"},
-  {GIMP_PDB_INT32, "disc_coeff", "Discard coefficient"},
-  {GIMP_PDB_FLOAT, "rigidity", "Rigidity coefficient"},
-  {GIMP_PDB_INT32, "rigidity_mask_layer", "Layer used as rigidity mask"},
-  {GIMP_PDB_INT32, "delta_x", "max displacement of seams"},
-  {GIMP_PDB_FLOAT, "enl_step", "enlargment step (ratio)"},
-  {GIMP_PDB_INT32, "resize_aux_layers",
-   "Whether to resize auxiliary layers"},
-  {GIMP_PDB_INT32, "resize_canvas", "Whether to resize canvas"},
-  {GIMP_PDB_INT32, "output_target", "Output target (same layer, new layer, new image)"},
-  {GIMP_PDB_INT32, "seams", "Whether to output the seam map"},
-  {GIMP_PDB_INT32, "nrg_func", "Energy function to use"},
-  {GIMP_PDB_INT32, "res_order", "Resize order"},
-  {GIMP_PDB_INT32, "mask_behavior", "What to do with masks"},
-  {GIMP_PDB_INT32, "scaleback", "Whether to scale back when done"},
-  {GIMP_PDB_INT32, "scaleback_mode", "Scale back mode"},
-  {GIMP_PDB_INT32, "no_disc_on_enlarge", "Ignore discard layer upon enlargement"},
-  {GIMP_PDB_STRING, "pres_layer_name", "Preservation layer name (for noninteractive mode only)"},
-  {GIMP_PDB_STRING, "disc_layer_name", "Discard layer name (for noninteractive mode only)"},
-  {GIMP_PDB_STRING, "rigmask_layer_name", "Rigidity mask layer name (for noninteractive mode only)"},
-  {GIMP_PDB_STRING, "selected_layer_name", "Selected layer name (for noninteractive mode only)"},
-};
+/* Remove old GimpParamDef - replaced by new procedure system */
 
-static int args_num;
+/* Modern GIMP 3.0 plugin class */
+typedef struct _LqrPlugin      LqrPlugin;
+typedef struct _LqrPluginClass LqrPluginClass;
 
-GimpPlugInInfo PLUG_IN_INFO = {
-  NULL,                         /* init_proc  */
-  NULL,                         /* quit_proc  */
-  query,                        /* query_proc */
-  run,                          /* run_proc   */
-};
-
-MAIN ()
-
-static void query (void)
+struct _LqrPlugin
 {
-#if defined(G_OS_WIN32)
-  gchar *gimp_share_directory;
-#endif
-  gchar *help_path;
-  gchar *help_uri;
+  GimpPlugIn parent_instance;
+};
 
-  args_num = G_N_ELEMENTS (args);
+struct _LqrPluginClass
+{
+  GimpPlugInClass parent_class;
+};
 
-#if defined(G_OS_WIN32)
-  gimp_share_directory = get_gimp_share_directory_on_windows();
-#endif
+#define LQR_TYPE_PLUGIN  (lqr_plugin_get_type ())
+#define LQR_PLUGIN(obj)  (G_TYPE_CHECK_INSTANCE_CAST ((obj), LQR_TYPE_PLUGIN, LqrPlugin))
 
-#if defined(G_OS_WIN32)
-  gimp_plugin_domain_register (GETTEXT_PACKAGE, gimp_locale_directory());
-  help_path = g_build_filename (gimp_share_directory, PACKAGE_NAME, "help", NULL); 
-#else 
-  gimp_plugin_domain_register (GETTEXT_PACKAGE, LOCALEDIR);
-  help_path = g_build_filename (PLUGIN_DATADIR, "help", NULL);
-#endif
-  help_uri = g_filename_to_uri (help_path, NULL, NULL);
+GType                   lqr_plugin_get_type         (void) G_GNUC_CONST;
 
-  gimp_plugin_help_register ("plug-in-lqr-help", help_uri); 
-  g_free (help_uri); 
+static GList          * lqr_query_procedures        (GimpPlugIn           *plug_in);
+static GimpProcedure  * lqr_create_procedure        (GimpPlugIn           *plug_in,
+                                                     const gchar          *name);
 
-  gimp_install_procedure (PLUG_IN_NAME,
-                          N_("scaling which keeps layer features (or removes them)"),
-                          "Resize a layer preserving (or removing) content",
-                          "Carlo Baldassi <carlobaldassi@gmail.com>",
-                          "Carlo Baldassi <carlobaldassi@gmail.com>", "2010",
-                          N_("Li_quid rescale..."), "RGB*, GRAY*",
-                          GIMP_PLUGIN, args_num, 0, args, NULL);
+G_DEFINE_TYPE (LqrPlugin, lqr_plugin, GIMP_TYPE_PLUG_IN)
 
-  gimp_plugin_menu_register (PLUG_IN_NAME, "<Image>/Layer/");
+GIMP_MAIN (LQR_TYPE_PLUGIN)
+
+static void
+lqr_plugin_class_init (LqrPluginClass *klass)
+{
+  GimpPlugInClass *plug_in_class = GIMP_PLUG_IN_CLASS (klass);
+
+  plug_in_class->query_procedures = lqr_query_procedures;
+  plug_in_class->create_procedure  = lqr_create_procedure;
+  plug_in_class->set_i18n          = STD_SET_I18N;
+}
+
+static void
+lqr_plugin_init (LqrPlugin *lqr)
+{
+}
+
+static GList *
+lqr_query_procedures (GimpPlugIn *plug_in)
+{
+  return g_list_append (NULL, g_strdup (PLUG_IN_NAME));
+}
+
+static GimpProcedure *
+lqr_create_procedure (GimpPlugIn  *plug_in,
+                      const gchar *name)
+{
+  return create_procedure (plug_in, name);
+}
+
+static GimpProcedure *
+create_procedure (GimpPlugIn  *plug_in,
+                  const gchar *name)
+{
+  GimpProcedure *procedure = NULL;
+
+  if (g_strcmp0 (name, PLUG_IN_NAME) == 0)
+    {
+      procedure = gimp_image_procedure_new (plug_in, name,
+                                            GIMP_PDB_PROC_TYPE_PLUGIN,
+                                            lqr_run, NULL, NULL);
+
+      gimp_procedure_set_image_types (procedure, "RGB*, GRAY*");
+      gimp_procedure_set_sensitivity_mask (procedure,
+                                           GIMP_PROCEDURE_SENSITIVE_DRAWABLE);
+
+      gimp_procedure_set_menu_label (procedure, N_("Li_quid rescale..."));
+      gimp_procedure_add_menu_path (procedure, "<Image>/Layer/");
+
+      gimp_procedure_set_documentation (procedure,
+                                        N_("scaling which keeps layer features (or removes them)"),
+                                        "Resize a layer preserving (or removing) content",
+                                        name);
+      gimp_procedure_set_attribution (procedure,
+                                      "Carlo Baldassi <carlobaldassi@gmail.com>",
+                                      "Carlo Baldassi <carlobaldassi@gmail.com>",
+                                      "2010");
+
+      /* Add arguments */
+      gimp_procedure_add_int_argument (procedure, "width",
+                                       "Final width",
+                                       "Final width",
+                                       1, GIMP_MAX_IMAGE_SIZE, 100,
+                                       G_PARAM_READWRITE);
+      
+      gimp_procedure_add_int_argument (procedure, "height",
+                                       "Final height", 
+                                       "Final height",
+                                       1, GIMP_MAX_IMAGE_SIZE, 100,
+                                       G_PARAM_READWRITE);
+
+      gimp_procedure_add_layer_argument (procedure, "pres_layer",
+                                         "Preservation layer",
+                                         "Layer that marks preserved areas",
+                                         TRUE,
+                                         G_PARAM_READWRITE);
+
+      gimp_procedure_add_int_argument (procedure, "pres_coeff",
+                                       "Preservation coefficient",
+                                       "Preservation coefficient",
+                                       0, 10000, 1000,
+                                       G_PARAM_READWRITE);
+
+      gimp_procedure_add_layer_argument (procedure, "disc_layer",
+                                         "Discard layer",
+                                         "Layer that marks areas to discard",
+                                         TRUE,
+                                         G_PARAM_READWRITE);
+
+      gimp_procedure_add_int_argument (procedure, "disc_coeff",
+                                       "Discard coefficient",
+                                       "Discard coefficient", 
+                                       0, 10000, 1000,
+                                       G_PARAM_READWRITE);
+
+      gimp_procedure_add_double_argument (procedure, "rigidity",
+                                          "Rigidity coefficient",
+                                          "Rigidity coefficient",
+                                          0.0, 100.0, 0.0,
+                                          G_PARAM_READWRITE);
+
+      gimp_procedure_add_layer_argument (procedure, "rigidity_mask_layer",
+                                         "Rigidity mask layer", 
+                                         "Layer used as rigidity mask",
+                                         TRUE,
+                                         G_PARAM_READWRITE);
+
+      gimp_procedure_add_int_argument (procedure, "delta_x",
+                                       "Max displacement",
+                                       "max displacement of seams",
+                                       0, 100, 1,
+                                       G_PARAM_READWRITE);
+
+      gimp_procedure_add_double_argument (procedure, "enl_step",
+                                          "Enlargement step",
+                                          "enlargment step (ratio)",
+                                          1.0, 500.0, 150.0,
+                                          G_PARAM_READWRITE);
+
+      gimp_procedure_add_boolean_argument (procedure, "resize_aux_layers",
+                                           "Resize auxiliary layers",
+                                           "Whether to resize auxiliary layers",
+                                           TRUE,
+                                           G_PARAM_READWRITE);
+
+      gimp_procedure_add_boolean_argument (procedure, "resize_canvas",
+                                           "Resize canvas",
+                                           "Whether to resize canvas", 
+                                           TRUE,
+                                           G_PARAM_READWRITE);
+
+      gimp_procedure_add_int_argument (procedure, "output_target",
+                                       "Output target",
+                                       "Output target (same layer, new layer, new image)",
+                                       0, 2, 0,
+                                       G_PARAM_READWRITE);
+
+      gimp_procedure_add_boolean_argument (procedure, "seams",
+                                           "Output seams", 
+                                           "Whether to output the seam map",
+                                           FALSE,
+                                           G_PARAM_READWRITE);
+
+      gimp_procedure_add_int_argument (procedure, "nrg_func",
+                                       "Energy function",
+                                       "Energy function to use",
+                                       0, 10, 0,
+                                       G_PARAM_READWRITE);
+
+      gimp_procedure_add_int_argument (procedure, "res_order",
+                                       "Resize order", 
+                                       "Resize order",
+                                       0, 1, 0,
+                                       G_PARAM_READWRITE);
+
+      gimp_procedure_add_int_argument (procedure, "mask_behavior",
+                                       "Mask behavior",
+                                       "What to do with masks",
+                                       0, 2, 0,
+                                       G_PARAM_READWRITE);
+
+      gimp_procedure_add_boolean_argument (procedure, "scaleback",
+                                           "Scale back",
+                                           "Whether to scale back when done",
+                                           FALSE,
+                                           G_PARAM_READWRITE);
+
+      gimp_procedure_add_int_argument (procedure, "scaleback_mode",
+                                       "Scale back mode",
+                                       "Scale back mode",
+                                       0, 1, 0,
+                                       G_PARAM_READWRITE);
+
+      gimp_procedure_add_boolean_argument (procedure, "no_disc_on_enlarge",
+                                           "No discard on enlarge",
+                                           "Ignore discard layer upon enlargement",
+                                           TRUE,
+                                           G_PARAM_READWRITE);
+
+      gimp_procedure_add_string_argument (procedure, "pres_layer_name",
+                                          "Preservation layer name",
+                                          "Preservation layer name (for noninteractive mode only)",
+                                          "",
+                                          G_PARAM_READWRITE);
+
+      gimp_procedure_add_string_argument (procedure, "disc_layer_name", 
+                                          "Discard layer name",
+                                          "Discard layer name (for noninteractive mode only)",
+                                          "",
+                                          G_PARAM_READWRITE);
+
+      gimp_procedure_add_string_argument (procedure, "rigmask_layer_name",
+                                          "Rigidity mask layer name", 
+                                          "Rigidity mask layer name (for noninteractive mode only)",
+                                          "",
+                                          G_PARAM_READWRITE);
+
+      gimp_procedure_add_string_argument (procedure, "selected_layer_name",
+                                          "Selected layer name",
+                                          "Selected layer name (for noninteractive mode only)",
+                                          "",
+                                          G_PARAM_READWRITE);
+    }
+
+  return procedure;
 }
 
 
@@ -276,6 +436,9 @@ run (const gchar * name,
   textdomain (GETTEXT_PACKAGE);
 
   args_num = G_N_ELEMENTS (args);
+
+  /* Initialize default colors */
+  initialize_default_colors ();
 
   run_mode = param[0].data.d_int32;
   image_ID = param[1].data.d_int32;
@@ -517,64 +680,80 @@ retrieve_vals_use_aux_layers_names (gint32 image_ID)
 }
 
 static void
-noninteractive_read_vals (const GimpParam * param)
+noninteractive_read_vals (GimpProcedureConfig *config, GimpImage *image)
 {
   gint32 image_ID;
   gint32 aux_pres_layer_ID;
   gint32 aux_disc_layer_ID;
   gint32 aux_rigmask_layer_ID;
   gint32 aux_selected_layer_ID;
-  int val_ind = 3;
 
-  image_ID = image_vals.image_ID;
+  image_ID = gimp_image_get_id (image);
 
-  vals.new_width = param[val_ind++].data.d_int32;
-  vals.new_height = param[val_ind++].data.d_int32;
-  vals.pres_layer_ID = param[val_ind++].data.d_int32;
-  vals.pres_coeff = param[val_ind++].data.d_int32;
-  vals.disc_layer_ID = param[val_ind++].data.d_int32;
-  vals.disc_coeff = param[val_ind++].data.d_int32;
-  vals.rigidity = param[val_ind++].data.d_float;
-  vals.rigmask_layer_ID = param[val_ind++].data.d_int32;
-  vals.delta_x = param[val_ind++].data.d_int32;
-  vals.enl_step = param[val_ind++].data.d_float;
-  vals.resize_aux_layers = param[val_ind++].data.d_int32;
-  vals.resize_canvas = param[val_ind++].data.d_int32;
-  vals.output_target = param[val_ind++].data.d_int32;
-  vals.output_seams = param[val_ind++].data.d_int32;
-  vals.nrg_func = param[val_ind++].data.d_int32;
-  vals.res_order = param[val_ind++].data.d_int32;
-  vals.mask_behavior = param[val_ind++].data.d_int32;
-  vals.scaleback = param[val_ind++].data.d_int32;
-  vals.scaleback_mode = param[val_ind++].data.d_int32;
-  vals.no_disc_on_enlarge = param[val_ind++].data.d_int32;
-  g_strlcpy(vals.pres_layer_name, param[val_ind++].data.d_string, VALS_MAX_NAME_LENGTH);
-  g_strlcpy(vals.disc_layer_name, param[val_ind++].data.d_string, VALS_MAX_NAME_LENGTH);
-  g_strlcpy(vals.rigmask_layer_name, param[val_ind++].data.d_string, VALS_MAX_NAME_LENGTH);
-  g_strlcpy(vals.selected_layer_name, param[val_ind++].data.d_string, VALS_MAX_NAME_LENGTH);
+  /* Read parameters using GimpProcedureConfig */
+  g_object_get (config,
+                "width", &vals.new_width,
+                "height", &vals.new_height,
+                "pres_coeff", &vals.pres_coeff,
+                "disc_coeff", &vals.disc_coeff,
+                "rigidity", &vals.rigidity,
+                "delta_x", &vals.delta_x,
+                "enl_step", &vals.enl_step,
+                "resize_aux_layers", &vals.resize_aux_layers,
+                "resize_canvas", &vals.resize_canvas,
+                "output_target", &vals.output_target,
+                "seams", &vals.output_seams,
+                "nrg_func", &vals.nrg_func,
+                "res_order", &vals.res_order,
+                "mask_behavior", &vals.mask_behavior,
+                "scaleback", &vals.scaleback,
+                "scaleback_mode", &vals.scaleback_mode,
+                "no_disc_on_enlarge", &vals.no_disc_on_enlarge,
+                NULL);
 
-  aux_pres_layer_ID = layer_from_name(image_ID, vals.pres_layer_name);
-  aux_disc_layer_ID = layer_from_name(image_ID, vals.disc_layer_name);
-  aux_rigmask_layer_ID = layer_from_name(image_ID, vals.rigmask_layer_name);
+  /* Get string parameters */
+  g_object_get (config,
+                "pres_layer_name", &vals.pres_layer_name,
+                "disc_layer_name", &vals.disc_layer_name,
+                "rigmask_layer_name", &vals.rigmask_layer_name,
+                "selected_layer_name", &vals.selected_layer_name,
+                NULL);
+
+  /* Get layer parameters */
+  GimpLayer *pres_layer = NULL;
+  GimpLayer *disc_layer = NULL;
+  GimpLayer *rigmask_layer = NULL;
+  
+  g_object_get (config,
+                "pres_layer", &pres_layer,
+                "disc_layer", &disc_layer,
+                "rigidity_mask_layer", &rigmask_layer,
+                NULL);
+
+  /* Convert GimpLayer objects to IDs if available */
+  if (pres_layer)
+    vals.pres_layer_ID = gimp_item_get_id (GIMP_ITEM (pres_layer));
+  else
+    vals.pres_layer_ID = layer_from_name(image_ID, vals.pres_layer_name);
+
+  if (disc_layer)
+    vals.disc_layer_ID = gimp_item_get_id (GIMP_ITEM (disc_layer));
+  else
+    vals.disc_layer_ID = layer_from_name(image_ID, vals.disc_layer_name);
+
+  if (rigmask_layer)
+    vals.rigmask_layer_ID = gimp_item_get_id (GIMP_ITEM (rigmask_layer));
+  else
+    vals.rigmask_layer_ID = layer_from_name(image_ID, vals.rigmask_layer_name);
+
+  /* Find auxiliary layers by name if needed */
   aux_selected_layer_ID = layer_from_name(image_ID, vals.selected_layer_name);
-
-  if (aux_pres_layer_ID)
-    {
-      vals.pres_layer_ID = aux_pres_layer_ID;
-    }
-  if (aux_disc_layer_ID)
-    {
-      vals.disc_layer_ID = aux_disc_layer_ID;
-    }
-  if (aux_rigmask_layer_ID)
-    {
-      vals.rigmask_layer_ID = aux_rigmask_layer_ID;
-    }
   if (aux_selected_layer_ID)
     {
       drawable_vals.layer_ID = aux_selected_layer_ID;
     }
 
+  /* Update status flags */
   if (vals.pres_layer_ID)
     {
       ui_vals.pres_status = TRUE;

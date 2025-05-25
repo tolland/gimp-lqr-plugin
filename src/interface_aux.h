@@ -37,6 +37,6 @@ dialog_aux (PlugInImageVals * image_vals,
 	PlugInUIVals * ui_vals,
      	PlugInColVals * col_vals, PlugInDialogVals * dialog_vals);
 
-GimpRGB * colour_from_type (gint32 image_ID, AuxLayerType layer_type);
+GeglColor * colour_from_type (gint32 image_ID, AuxLayerType layer_type);
 
 #endif /* __INTERFACE_AUX_H__ */
