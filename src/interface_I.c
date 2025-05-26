@@ -115,7 +115,7 @@ dialog_I (PlugInImageVals * image_vals,
   GtkWidget *dump_event_box;
   GtkWidget *dump_button;
   GtkWidget *dump_icon;
-  GimpUnit unit;
+  GimpUnit *unit;
   gdouble xres, yres;
   GtkWidget * v_separator;
   GtkWidget *info_title_label;

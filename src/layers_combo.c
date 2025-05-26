@@ -282,7 +282,7 @@ guess_new_size (GtkWidget * button, PreviewData * p_data, GuessDir direction)
   gint lw, lh;
   gint x_off, y_off;
   gint bpp, c_bpp;
-  GimpPixelRgn rgn_in;
+  GeglBuffer *buffer_in;
   guchar *line;
   gboolean has_alpha;
   gdouble sum;
@@ -313,8 +313,7 @@ guess_new_size (GtkWidget * button, PreviewData * p_data, GuessDir direction)
   bpp = gimp_drawable_bpp (disc_layer_ID);
   c_bpp = bpp - (has_alpha ? 1 : 0);
 
-  drawable = gimp_drawable_get (disc_layer_ID);
-  gimp_pixel_rgn_init (&rgn_in, drawable, 0, 0, width, height, FALSE, FALSE);
+  buffer_in = gimp_drawable_get_buffer (GIMP_DRAWABLE (gimp_drawable_get_by_id (disc_layer_ID)));
 
 
   gimp_drawable_get_offsets (disc_layer_ID, &x_off, &y_off);
@@ -349,10 +348,10 @@ guess_new_size (GtkWidget * button, PreviewData * p_data, GuessDir direction)
       switch (direction)
         {
           case GUESS_DIR_HOR:
-            gimp_pixel_rgn_get_row (&rgn_in, line, MAX (0, -x_off), z1 - y_off, z2max);
+            gegl_buffer_get (buffer_in, GEGL_RECTANGLE (MAX (0, -x_off), z1 - y_off, z2max, 1), 1.0, NULL, line, GEGL_AUTO_ROWSTRIDE, GEGL_ABYSS_NONE);
             break;
           case GUESS_DIR_VERT:
-            gimp_pixel_rgn_get_col (&rgn_in, line, z1 - x_off, MAX (0, -y_off), z2max);
+            gegl_buffer_get (buffer_in, GEGL_RECTANGLE (z1 - x_off, MAX (0, -y_off), 1, z2max), 1.0, NULL, line, GEGL_AUTO_ROWSTRIDE, GEGL_ABYSS_NONE);
             break;
         }
 
@@ -386,7 +385,7 @@ guess_new_size (GtkWidget * button, PreviewData * p_data, GuessDir direction)
   new_size = old_size - max_mask_size;
 
   g_free (line);
-  gimp_drawable_detach (drawable);
+  g_object_unref (buffer_in);
 
   return new_size;
 }

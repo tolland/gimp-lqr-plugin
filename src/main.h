@@ -31,6 +31,7 @@
 #define RESPONSE_INTERACTIVE (6)
 #define RESPONSE_NONINTERACTIVE (7)
 #define RESPONSE_FATAL (8)
+#define STD_SET_I18N set_i18n
 
 typedef enum
 {

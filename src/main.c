@@ -203,7 +203,7 @@ lqr_plugin_class_init (LqrPluginClass *klass)
 
   plug_in_class->query_procedures = lqr_query_procedures;
   plug_in_class->create_procedure  = lqr_create_procedure;
-  plug_in_class->set_i18n          = STD_SET_I18N;
+//  plug_in_class->set_i18n          = STD_SET_I18N;
 }
 
 static void

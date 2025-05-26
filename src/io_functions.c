@@ -31,8 +31,7 @@ rgb_buffer_from_layer (gint32 layer_ID)
 {
   gint y, bpp;
   gint w, h;
-  GimpDrawable *drawable;
-  GimpPixelRgn rgn_in;
+  GeglBuffer *buffer_in;
   guchar *buffer;
   gint update_step;
 
@@ -45,13 +44,12 @@ rgb_buffer_from_layer (gint32 layer_ID)
 
   LQR_TRY_N_N (buffer = g_try_new (guchar, bpp * w * h));
 
-  drawable = gimp_drawable_get (layer_ID);
+  buffer_in = gimp_drawable_get_buffer (GIMP_DRAWABLE (gimp_drawable_get_by_id (layer_ID)));
 
-  gimp_pixel_rgn_init (&rgn_in, drawable, 0, 0, w, h, FALSE, FALSE);
+  gegl_buffer_get (buffer_in, GEGL_RECTANGLE (0, 0, w, h), 1.0, NULL, buffer, GEGL_AUTO_ROWSTRIDE, GEGL_ABYSS_NONE);
 
   for (y = 0; y < h; y++)
     {
-      gimp_pixel_rgn_get_row (&rgn_in, buffer + y * w * bpp, 0, y, w);
 
       update_step = MAX ((h - 1) / 20, 1);
       if (y % update_step == 0)
@@ -60,7 +58,7 @@ rgb_buffer_from_layer (gint32 layer_ID)
         }
     }
 
-  gimp_drawable_detach (drawable);
+  g_object_unref (buffer_in);
 
   gimp_progress_end();
 
@@ -134,33 +132,30 @@ set_rigmask (LqrCarver * r, gint32 layer_ID, gint base_x_off, gint base_y_off)
 LqrRetVal
 write_carver_to_layer (LqrCarver * r, gint32 layer_ID)
 {
-  GimpDrawable * drawable;
+  GeglBuffer *buffer_out;
   gint y;
   gint w, h;
-  GimpPixelRgn rgn_out;
   guchar *out_line;
   gint update_step;
 
   gimp_progress_init (_("Applying changes..."));
   update_step = MAX ((lqr_carver_get_height(r) - 1) / 20, 1);
 
-  drawable = gimp_drawable_get (layer_ID);
-
   w = gimp_drawable_get_width (layer_ID);
   h = gimp_drawable_get_height (layer_ID);
 
-  gimp_pixel_rgn_init (&rgn_out, drawable, 0, 0, w, h, TRUE, TRUE);
+  buffer_out = gimp_drawable_get_buffer (GIMP_DRAWABLE (gimp_drawable_get_by_id (layer_ID)));
 
 
   while (lqr_carver_scan_line (r, &y, &out_line))
     {
       if (lqr_carver_scan_by_row(r))
         {
-          gimp_pixel_rgn_set_row (&rgn_out, out_line, 0, y, w);
+          gegl_buffer_set (buffer_out, GEGL_RECTANGLE (0, y, w, 1), 0, NULL, out_line, GEGL_AUTO_ROWSTRIDE);
         }
       else
         {
-          gimp_pixel_rgn_set_col (&rgn_out, out_line, y, 0, h);
+          gegl_buffer_set (buffer_out, GEGL_RECTANGLE (y, 0, 1, h), 0, NULL, out_line, GEGL_AUTO_ROWSTRIDE);
         }
 
       if (y % update_step == 0)
@@ -170,11 +165,11 @@ write_carver_to_layer (LqrCarver * r, gint32 layer_ID)
 
     }
 
-  gimp_drawable_flush (drawable);
-  gimp_drawable_merge_shadow (layer_ID, TRUE);
-  gimp_drawable_update (layer_ID, 0, 0, w, h);
+  gegl_buffer_flush (buffer_out);
+  gimp_drawable_merge_shadow (GIMP_DRAWABLE (gimp_drawable_get_by_id (layer_ID)), TRUE);
+  gimp_drawable_update (GIMP_DRAWABLE (gimp_drawable_get_by_id (layer_ID)), 0, 0, w, h);
 
-  gimp_drawable_detach (drawable);
+  g_object_unref (buffer_out);
 
   gimp_progress_end();
 
@@ -190,11 +185,10 @@ write_vmap_to_layer (LqrVMap * vmap, gpointer data)
   gint32 seam_layer_ID;
   gint32 * seam_layer_p;
   gint32 image_ID;
-  GimpDrawable *drawable;
+  GeglBuffer *buffer_out;
   gint x_off, y_off;
   gchar *name;
   GeglColor *col_start, *col_end;
-  GimpPixelRgn rgn_out;
   guchar *outrow;
   gdouble value, rd, gr, bl, al;
   gint vs, y, x, k;
@@ -238,11 +232,9 @@ write_vmap_to_layer (LqrVMap * vmap, gpointer data)
     {
       gimp_layer_resize  (seam_layer_ID, w, h, 0, 0);
     }
-  drawable = gimp_drawable_get (seam_layer_ID);
+  buffer_out = gimp_drawable_get_buffer (GIMP_DRAWABLE (gimp_drawable_get_by_id (seam_layer_ID)));
 
   bpp = 4;
-
-  gimp_pixel_rgn_init (&rgn_out, drawable, 0, 0, w, h, TRUE, TRUE);
 
   CATCH_MEM (outrow = g_try_new (guchar, w * bpp));
 
@@ -274,18 +266,18 @@ write_vmap_to_layer (LqrVMap * vmap, gpointer data)
               outrow[x * bpp + 3] = 255 * al;
             }
         }
-      gimp_pixel_rgn_set_row (&rgn_out, outrow, 0, y, w);
+      gegl_buffer_set (buffer_out, GEGL_RECTANGLE (0, y, w, 1), 0, NULL, outrow, GEGL_AUTO_ROWSTRIDE);
       if (y % update_step == 0)
         {
           gimp_progress_update ((gdouble) y / (h - 1));
         }
     }
 
-  gimp_drawable_flush (drawable);
-  gimp_drawable_merge_shadow (seam_layer_ID, TRUE);
-  gimp_drawable_update (seam_layer_ID, 0, 0, w, h);
-  gimp_drawable_set_visible (seam_layer_ID, TRUE);
-  gimp_drawable_detach (drawable);
+  gegl_buffer_flush (buffer_out);
+  gimp_drawable_merge_shadow (GIMP_DRAWABLE (gimp_drawable_get_by_id (seam_layer_ID)), TRUE);
+  gimp_drawable_update (GIMP_DRAWABLE (gimp_drawable_get_by_id (seam_layer_ID)), 0, 0, w, h);
+  gimp_item_set_visible (GIMP_ITEM (gimp_drawable_get_by_id (seam_layer_ID)), TRUE);
+  g_object_unref (buffer_out);
 
   gimp_progress_end();
 

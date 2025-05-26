@@ -5666,7 +5666,7 @@ if test "x$GCC" = "xyes"; then
 fi
 
 
-GIMP_REQUIRED_VERSION=2.8.0
+GIMP_REQUIRED_VERSION=3.0.0
 
 
 
@@ -6008,7 +6008,7 @@ LQR_LIBDIR=`$PKG_CONFIG --variable=libdir lqr-1`
 
 
 
-GETTEXT_PACKAGE=gimp20-lqr-plugin
+GETTEXT_PACKAGE=gimp30-lqr-plugin
 
 
 printf "%s\n" "#define GETTEXT_PACKAGE \"$GETTEXT_PACKAGE\"" >>confdefs.h
