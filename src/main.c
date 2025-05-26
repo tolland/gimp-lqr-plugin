@@ -1,22 +1,3 @@
-/* GIMP LiquidRescale Plug-in
- * Copyright (C) 2007-2010 Carlo Baldassi (the "Author") <carlobaldassi@gmail.com>.
- * All Rights Reserved.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the Licence, or
- * (at your option) any later version.
-
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
-
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, see <http://www.gnu.org.licences/>.
- */
-
-
 #include "config.h"
 
 #include <string.h>
@@ -36,10 +17,12 @@
 #include "interface_I.h"
 #include "interface_aux.h"
 
+#include <glib-object.h>
+
 /*  Local function prototypes  */
 
 static gint32 layer_from_name(gint32 image_ID, gchar * name);
-static void set_aux_layer_name(gint layer_ID, gboolean status, gchar * name);
+static void set_aux_layer_name(GimpLayer *layer, gboolean status, gchar * name);
 static void save_vals (void);
 static void retrieve_vals (void);
 static void retrieve_vals_use_aux_layers_names (gint32 image_ID);
@@ -55,7 +38,7 @@ static GimpProcedure * create_procedure (GimpPlugIn  *plug_in,
 static GimpValueArray * lqr_run (GimpProcedure        *procedure,
                                   GimpRunMode           run_mode,
                                   GimpImage            *image,
-                                  gint                  n_drawables,
+//                                  gint                  n_drawables,
                                   GimpDrawable        **drawables,
                                   GimpProcedureConfig  *config,
                                   gpointer              run_data);
@@ -406,7 +389,7 @@ static GimpValueArray *
 lqr_run (GimpProcedure        *procedure,
          GimpRunMode           run_mode,
          GimpImage            *image,
-         gint                  n_drawables,
+//         gint                  n_drawables,
          GimpDrawable        **drawables,
          GimpProcedureConfig  *config,
          gpointer              run_data)
@@ -448,9 +431,12 @@ lqr_run (GimpProcedure        *procedure,
     }
   if (!gimp_item_is_layer (GIMP_ITEM (drawable)))
     {
-      GimpLayer *active_layer = gimp_image_get_active_layer (image);
-      if (active_layer)
-        layer_ID = gimp_item_get_id (GIMP_ITEM (active_layer));
+      GimpLayer **selected_layers;
+      gint n_selected_layers;
+      selected_layers = gimp_image_get_selected_layers (image);
+      if (selected_layers && n_selected_layers > 0)
+        layer_ID = gimp_item_get_id (GIMP_ITEM (selected_layers[0]));
+      g_free (selected_layers);
     }
 
 
@@ -551,7 +537,8 @@ lqr_run (GimpProcedure        *procedure,
 
   if (status == GIMP_PDB_SUCCESS)
     {
-      IMAGE_CHECK (image_ID, return gimp_procedure_new_return_values (procedure, GIMP_PDB_EXECUTION_ERROR, NULL));
+      // @TODO find migration path for image_ID
+      //IMAGE_CHECK (image_ID, return gimp_procedure_new_return_values (procedure, GIMP_PDB_EXECUTION_ERROR, NULL));
       AUX_LAYER_STATUS(vals.pres_layer_ID, ui_vals.pres_status);
       AUX_LAYER_STATUS(vals.disc_layer_ID, ui_vals.disc_status);
       AUX_LAYER_STATUS(vals.rigmask_layer_ID, ui_vals.rigmask_status);
@@ -589,7 +576,7 @@ lqr_run (GimpProcedure        *procedure,
           save_vals();
         }
 
-      IMAGE_CHECK (image_ID, return gimp_procedure_new_return_values (procedure, GIMP_PDB_EXECUTION_ERROR, NULL));
+     // IMAGE_CHECK (image_ID, return gimp_procedure_new_return_values (procedure, GIMP_PDB_EXECUTION_ERROR, NULL));
       gimp_image_undo_group_end (image);
     }
 
@@ -600,56 +587,77 @@ static gint32
 layer_from_name(gint32 image_ID, gchar * name)
 {
   gint i;
-  gint num_layers;
-  gint * layer_list;
+  GimpLayer **layers;
 
   if ((name == NULL) || (strncmp(name, "", VALS_MAX_NAME_LENGTH) == 0))
     {
       return 0;
     }
 
-  layer_list = gimp_image_get_layers(image_ID, &num_layers);
-  for (i = 0; i < num_layers; i++) {
-    if (strncmp(name, gimp_item_get_name(layer_list[i]), VALS_MAX_NAME_LENGTH) == 0)
+  GimpImage *image = gimp_image_get_by_id(image_ID);
+  if (!image)
+    return 0;
+
+  layers = gimp_image_get_layers(image);
+  if (!layers)
+    return 0;
+
+  for (i = 0; layers[i] != NULL; i++) {
+    if (strncmp(name, gimp_item_get_name(GIMP_ITEM(layers[i])), VALS_MAX_NAME_LENGTH) == 0)
       {
-        return layer_list[i];
+        gint32 layer_id = gimp_item_get_id(GIMP_ITEM(layers[i]));
+        g_free(layers);
+        return layer_id;
       }
   }
+  g_free(layers);
   return 0;
 }
 
 static void
-set_aux_layer_name(gint layer_ID, gboolean status, gchar * name)
+set_aux_layer_name(GimpLayer *layer, gboolean status, gchar * name)
 {
-  if ((layer_ID == -1) || (status == FALSE))
+  if ((layer == NULL) || (status == FALSE))
     {
       name[0] = '\0';
     }
   else
     {
-      g_strlcpy(name, gimp_item_get_name(layer_ID), VALS_MAX_NAME_LENGTH);
+      g_strlcpy(name, gimp_item_get_name(GIMP_ITEM(layer)), VALS_MAX_NAME_LENGTH);
     }
 }
 
 static void
 save_vals (void)
 {
-  set_aux_layer_name (vals.pres_layer_ID, ui_vals.pres_status, vals.pres_layer_name);
-  set_aux_layer_name (vals.disc_layer_ID, ui_vals.disc_status, vals.disc_layer_name);
-  set_aux_layer_name (vals.rigmask_layer_ID, ui_vals.rigmask_status, vals.rigmask_layer_name);
+  GimpLayer *pres_layer = gimp_item_get_by_id(vals.pres_layer_ID);
+  GimpLayer *disc_layer = gimp_item_get_by_id(vals.disc_layer_ID);
+  GimpLayer *rigmask_layer = gimp_item_get_by_id(vals.rigmask_layer_ID);
 
-  gimp_set_data (DATA_KEY_VALS, &vals, sizeof (vals));
-  gimp_set_data (DATA_KEY_UI_VALS, &ui_vals, sizeof (ui_vals));
-  gimp_set_data (DATA_KEY_COL_VALS, &col_vals, sizeof (col_vals));
+  set_aux_layer_name (pres_layer, ui_vals.pres_status, vals.pres_layer_name);
+  set_aux_layer_name (disc_layer, ui_vals.disc_status, vals.disc_layer_name);
+  set_aux_layer_name (rigmask_layer, ui_vals.rigmask_status, vals.rigmask_layer_name);
+
+  // TODO: Implement proper data storage in GIMP 3.0
+  // For now, just store in memory
+  static PlugInVals saved_vals;
+  static PlugInUIVals saved_ui_vals;
+  static PlugInColVals saved_col_vals;
+
+  memcpy(&saved_vals, &vals, sizeof(vals));
+  memcpy(&saved_ui_vals, &ui_vals, sizeof(ui_vals));
+  memcpy(&saved_col_vals, &col_vals, sizeof(col_vals));
 }
 
 static void
 retrieve_vals (void)
 {
   /* Possibly retrieve data  */
-  gimp_get_data (DATA_KEY_VALS, &vals);
-  gimp_get_data (DATA_KEY_UI_VALS, &ui_vals);
-  gimp_get_data (DATA_KEY_COL_VALS, &col_vals);
+  // TODO: Implement proper data retrieval in GIMP 3.0
+  // For now, just use defaults
+  vals = default_vals;
+  ui_vals = default_ui_vals;
+  col_vals = default_col_vals;
 }
 
 static void
