@@ -1,21 +1,3 @@
-/* GIMP LiquidRescale Plug-in
- * Copyright (C) 2007-2010 Carlo Baldassi (the "Author") <carlobaldassi@gmail.com>.
- * All Rights Reserved.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the Licence, or
- * (at your option) any later version.
-
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
-
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, see <http://www.gnu.org.licences/>.
- */
-
 #ifndef __MAIN_COMMON_H__
 #define __MAIN_COMMON_H__
 
@@ -61,14 +43,14 @@ typedef struct
 
 /* GIMP 3.0 compatibility helpers */
 static inline void
-lqr_image_set_active_layer (gint32 image_id, gint32 layer_id)
+lqr_image_set_active_layer (GimpImage *image, GimpDrawable *drawable)
 {
-  GimpImage *image = gimp_image_get_by_id (image_id);
-  GimpLayer *layer = gimp_layer_get_by_id (layer_id);
-  if (image && layer)
+//  GimpImage *image = gimp_image_get_by_id (image_id);
+//  GimpLayer *layer = gimp_layer_get_by_id (layer_id);
+  if (image && drawable)
     {
       const GimpLayer **layers = g_new (const GimpLayer *, 1);
-      layers[0] = layer;
+      layers[0] = drawable;
       gimp_image_set_selected_layers (image, layers);
       g_free (layers);
     }

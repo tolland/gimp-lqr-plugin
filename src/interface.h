@@ -47,11 +47,12 @@ typedef struct
 
 /*  Public functions  */
 
-gint dialog (PlugInImageVals * image_vals,
-             PlugInDrawableVals * drawable_vals,
-             PlugInVals * vals,
-             PlugInUIVals * ui_vals, PlugInColVals * col_vals,
-	     PlugInDialogVals * dialog_vals);
+gint dialog (GimpImage *image,
+            GimpDrawable *drawable,
+            PlugInVals * vals,
+            PlugInUIVals * ui_vals,
+            PlugInColVals * col_vals,
+            PlugInDialogVals * dialog_vals);
 
 
 #endif /* __INTERFACE_H__ */

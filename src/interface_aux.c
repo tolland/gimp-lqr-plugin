@@ -57,14 +57,14 @@ extern GtkWidget *dlg;
 /***  Public functions  ***/
 
 gint
-dialog_aux (PlugInImageVals * image_vals,
-	PlugInDrawableVals * drawable_vals,
+dialog_aux (GimpImage *image,
+            GimpDrawable *drawable,
 	PlugInVals * vals,
 	PlugInUIVals * ui_vals,
         PlugInColVals * col_vals, PlugInDialogVals * dialog_vals)
 {
-  gint32 image_ID;
-  gint32 layer_ID;
+//  gint32 image_ID;
+//  gint32 layer_ID;
   GeglColor *fg_colour;
   GeglColor *saved_colour;
   GtkWidget *main_hbox;
@@ -72,8 +72,8 @@ dialog_aux (PlugInImageVals * image_vals,
   GtkWidget *info_label;
   InterfaceAuxData *ia_data;
 
-  image_ID = image_vals->image_ID;
-  layer_ID = drawable_vals->layer_ID;
+//  image_ID = image_vals->image_ID;
+//  layer_ID = drawable_vals->layer_ID;
 
   state = g_new (PlugInVals, 1);
   memcpy (state, vals, sizeof (PlugInVals));

@@ -42,8 +42,8 @@ typedef struct
 /* Functions  */
 
 CarverData *
-render_init_carver (PlugInImageVals * image_vals,
-        PlugInDrawableVals * drawable_vals,
+render_init_carver (GimpImage *image,
+        GimpDrawable *drawable,
         PlugInVals * vals,
         gboolean interactive);
 

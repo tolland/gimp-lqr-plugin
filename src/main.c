@@ -47,30 +47,30 @@ static GimpValueArray * lqr_run (GimpProcedure        *procedure,
 /*  Local variables  */
 
 const PlugInVals default_vals = {
-  100,                          /* new width */
-  100,                          /* new height */
-  0,                            /* pres layer ID */
-  1000,                         /* pres coeff */
-  0,                            /* disc layer ID */
-  1000,                         /* disc coeff */
-  0,                            /* rigidity coeff */
-  0,				/* rigmask layer ID */
-  1,                            /* delta x */
-  150,				/* enl step */
-  TRUE,                         /* resize aux layers */
-  TRUE,                         /* resize canvas */
-  OUTPUT_TARGET_SAME_LAYER,     /* output target (same layer, new layer, new image) */
-  FALSE,                        /* output seams */
-  LQR_EF_GRAD_XABS,             /* nrg func */
-  LQR_RES_ORDER_HOR,            /* resize order */
-  GIMP_MASK_APPLY,              /* mask behavior */
-  FALSE,                        /* scaleback */
-  SCALEBACK_MODE_LQRBACK,       /* scaleback mode */
-  TRUE,                         /* no disc upon enlarging */
-  "",	                        /* pres_layer_name */
-  "",                           /* disc_layer_name */
-  "",                           /* rigmask_layer_name */
-  "",                           /* selected layer name */
+        100,                          /* new width */
+        100,                          /* new height */
+        0,                            /* pres layer ID */
+        1000,                         /* pres coeff */
+        0,                            /* disc layer ID */
+        1000,                         /* disc coeff */
+        0,                            /* rigidity coeff */
+        0,                /* rigmask layer ID */
+        1,                            /* delta x */
+        150,                /* enl step */
+        TRUE,                         /* resize aux layers */
+        TRUE,                         /* resize canvas */
+        OUTPUT_TARGET_SAME_LAYER,     /* output target (same layer, new layer, new image) */
+        FALSE,                        /* output seams */
+        LQR_EF_GRAD_XABS,             /* nrg func */
+        LQR_RES_ORDER_HOR,            /* resize order */
+        GIMP_MASK_APPLY,              /* mask behavior */
+        FALSE,                        /* scaleback */
+        SCALEBACK_MODE_LQRBACK,       /* scaleback mode */
+        TRUE,                         /* no disc upon enlarging */
+        "",                            /* pres_layer_name */
+        "",                           /* disc_layer_name */
+        "",                           /* rigmask_layer_name */
+        "",                           /* selected layer name */
 };
 
 const PlugInColVals default_col_vals = {
@@ -82,13 +82,13 @@ const PlugInColVals default_col_vals = {
   0
 };
 
-const PlugInImageVals default_image_vals = {
-  0             /* image ID */
-};
-
-const PlugInDrawableVals default_drawable_vals = {
-  0             /* layer ID */
-};
+//const PlugInImageVals default_image_vals = {
+//  0             /* image ID */
+//};
+//
+//const PlugInDrawableVals default_drawable_vals = {
+//  0             /* layer ID */
+//};
 
 const PlugInUIVals default_ui_vals = {
   FALSE,                /* chain active */
@@ -145,8 +145,8 @@ initialize_default_colors (void)
 }
 
 static PlugInVals vals;
-static PlugInImageVals image_vals;
-static PlugInDrawableVals drawable_vals;
+static GimpImage *image = NULL;
+static GimpDrawable *drawable = NULL;
 static PlugInUIVals ui_vals;
 static PlugInColVals col_vals;
 static PlugInDialogVals dialog_vals;
@@ -442,20 +442,16 @@ lqr_run (GimpProcedure        *procedure,
 
   /*  Initialize with default values  */
   vals = default_vals;
-  image_vals = default_image_vals;
-  drawable_vals = default_drawable_vals;
+  image = gimp_image_get_by_id(image_ID);
+  drawable = gimp_drawable_get_by_id(layer_ID);
   ui_vals = default_ui_vals;
   col_vals = default_col_vals;
   dialog_vals = default_dialog_vals;
-
-  image_vals.image_ID = image_ID;
-  drawable_vals.layer_ID = layer_ID;
 
   switch (run_mode)
     {
     case GIMP_RUN_NONINTERACTIVE:
       noninteractive_read_vals (config, image);
-      layer_ID = drawable_vals.layer_ID;
       break;
 
         case GIMP_RUN_INTERACTIVE:
@@ -465,7 +461,7 @@ lqr_run (GimpProcedure        *procedure,
 
           while (run_dialog == TRUE)
             {
-              dialog_resp = dialog (&image_vals, &drawable_vals,
+              dialog_resp = dialog (image, drawable,
                              &vals, &ui_vals, &col_vals, &dialog_vals);
               switch (dialog_resp)
                 {
@@ -478,7 +474,7 @@ lqr_run (GimpProcedure        *procedure,
                     col_vals = default_col_vals;
                     break;
 		  case RESPONSE_INTERACTIVE:
-		    dialog_I_resp = dialog_I (&image_vals, &drawable_vals,
+		    dialog_I_resp = dialog_I (image, drawable,
                                 &vals, &ui_vals, &col_vals, &dialog_vals);
                     switch (dialog_I_resp)
                       {
@@ -498,7 +494,7 @@ lqr_run (GimpProcedure        *procedure,
                       }
                     break;
 		  case RESPONSE_WORK_ON_AUX_LAYER:
-                    dialog_aux_resp = dialog_aux (&image_vals, &drawable_vals,
+                    dialog_aux_resp = dialog_aux (image, drawable,
                         &vals, &ui_vals, &col_vals, &dialog_vals);
                     switch(dialog_aux_resp)
                       {
@@ -532,9 +528,6 @@ lqr_run (GimpProcedure        *procedure,
       break;
     }
 
-  image_ID = image_vals.image_ID;
-  layer_ID = drawable_vals.layer_ID;
-
   if (status == GIMP_PDB_SUCCESS)
     {
       // @TODO find migration path for image_ID
@@ -552,16 +545,15 @@ lqr_run (GimpProcedure        *procedure,
           CarverData * carver_data;
 
           render_success = FALSE;
-          carver_data = render_init_carver (&image_vals, &drawable_vals, &vals, FALSE);
+          carver_data = render_init_carver (image, drawable, &vals, FALSE);
           if (carver_data)
             {
-              image_vals.image_ID = carver_data->image_ID;
-              drawable_vals.layer_ID = carver_data->layer_ID;
-              if (image_ID != image_vals.image_ID)
+              image = gimp_image_get_by_id(carver_data->image_ID);
+              drawable = gimp_drawable_get_by_id(carver_data->layer_ID);
+              if (image_ID != gimp_image_get_id(image))
                 {
                   gimp_image_undo_group_end (image);
-                  image_ID = image_vals.image_ID;
-                  image = gimp_image_get_by_id (image_ID);
+                  image_ID = gimp_image_get_id(image);
                   gimp_image_undo_group_start (image);
                 }
               render_success = render_noninteractive (&vals, &col_vals, carver_data);
@@ -742,7 +734,7 @@ noninteractive_read_vals (GimpProcedureConfig *config, GimpImage *image)
   aux_selected_layer_ID = layer_from_name(image_ID, vals.selected_layer_name);
   if (aux_selected_layer_ID)
     {
-      drawable_vals.layer_ID = aux_selected_layer_ID;
+      drawable = gimp_drawable_get_by_id(aux_selected_layer_ID);
     }
 
   /* Update status flags */
@@ -771,15 +763,16 @@ install_custom_signals()
 static void
 cancel_work_on_aux_layer(void)
 {
-  if (!gimp_image_is_valid(image_vals.image_ID))
+  if (!image)
     {
       return;
     }
-  lqr_image_set_active_layer(image_vals.image_ID, drawable_vals.layer_ID);
-  if (ui_vals.layer_on_edit_is_new && gimp_drawable_is_valid (ui_vals.layer_on_edit_ID))
-    {
-      gimp_image_remove_layer(image_vals.image_ID, ui_vals.layer_on_edit_ID);
-    }
+  lqr_image_set_active_layer(image, drawable);
+  // @TODO migrate this
+//  if (ui_vals.layer_on_edit_is_new && gimp_item_is_valid (ui_vals.layer_on_edit_ID))
+//    {
+//      gimp_image_remove_layer(image, gimp_layer_get_by_id(ui_vals.layer_on_edit_ID));
+//    }
   gimp_displays_flush ();
 }
 

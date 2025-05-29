@@ -31,7 +31,7 @@ struct _AltSizeEntry
   gint       number_of_fields;
 
   GtkWidget *unitmenu;
-  GimpUnit   unit;
+  GimpUnit   *unit;
   gboolean   menu_show_pixels;
   gboolean   menu_show_percent;
 
@@ -62,7 +62,7 @@ struct _AltSizeEntryClass
 GType       alt_size_entry_get_type (void) G_GNUC_CONST;
 
 GtkWidget * alt_size_entry_new (gint                       number_of_fields,
-                                 GimpUnit                   unit,
+                                 GimpUnit                   *unit,
                                  const gchar               *unit_format,
                                  gboolean                   menu_show_pixels,
                                  gboolean                   menu_show_percent,
@@ -115,9 +115,9 @@ void        alt_size_entry_set_refval            (AltSizeEntry *gse,
                                                    gint           field,
                                                    gdouble        refval);
 
-GimpUnit    alt_size_entry_get_unit              (AltSizeEntry *gse);
+GimpUnit    * alt_size_entry_get_unit              (AltSizeEntry *gse);
 void        alt_size_entry_set_unit              (AltSizeEntry *gse,
-                                                   GimpUnit       unit);
+                                                   GimpUnit       *unit);
 void        alt_size_entry_show_unit_menu        (AltSizeEntry *gse,
                                                    gboolean       show);
 

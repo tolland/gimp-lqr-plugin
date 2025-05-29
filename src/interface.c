@@ -162,7 +162,7 @@ dialog (PlugInImageVals * image_vals,
   GtkWidget *scaleback_button;
   GtkWidget *mask_behavior_combo_box = NULL;
   gboolean has_mask = FALSE;
-  GimpUnit unit;
+  GimpUnit *unit;
   gdouble xres, yres;
 
   image_ID = image_vals->image_ID;

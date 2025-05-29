@@ -1,21 +1,3 @@
-/* GIMP LiquidRescale Plug-in
- * Copyright (C) 2007-2010 Carlo Baldassi (the "Author") <carlobaldassi@gmail.com>.
- * All Rights Reserved.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the Licence, or
- * (at your option) any later version.
-
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
-
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, see <http://www.gnu.org.licences/>.
- */
-
 #include "config.h"
 
 #include <gtk/gtk.h>
@@ -102,8 +84,8 @@ static void scale_layer_translated (gint32 layer_ID, gint width, gint height, gi
 /* render functions */
 
 CarverData *
-render_init_carver (PlugInImageVals * image_vals,
-        PlugInDrawableVals * drawable_vals,
+render_init_carver (GimpImage *image,
+                    GimpDrawable *drawable,
         PlugInVals * vals,
         gboolean interactive)
 {
@@ -127,8 +109,8 @@ render_init_carver (PlugInImageVals * image_vals,
   double clock1, clock2;
 #endif /* __CLOCK_IT__ */
 
-  image_ID = image_vals->image_ID;
-  layer_ID = drawable_vals->layer_ID;
+//  image_ID = image_vals->image_ID;
+//  layer_ID = drawable_vals->layer_ID;
 
   IMAGE_CHECK (image_ID, NULL);
 

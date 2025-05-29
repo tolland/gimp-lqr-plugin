@@ -1,4 +1,3 @@
-
 #ifndef __INTERFACE_I_H__
 #define __INTERFACE_I_H__
 
@@ -21,8 +20,8 @@ typedef struct
 /*  Public functions  */
 
 gint
-dialog_I (PlugInImageVals * image_vals,
-          PlugInDrawableVals * drawable_vals,
+dialog_I (GimpImage *image,
+          GimpDrawable *drawable,
           PlugInVals * vals,
           PlugInUIVals * ui_vals,
           PlugInColVals * col_vals,
