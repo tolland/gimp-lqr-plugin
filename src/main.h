@@ -16,51 +16,55 @@
 #define RESPONSE_FATAL (8)
 #define STD_SET_I18N set_i18n
 
-typedef enum
-{
-  AUX_LAYER_PRES,
-  AUX_LAYER_DISC,
-  AUX_LAYER_RIGMASK,
+typedef enum {
+    AUX_LAYER_PRES,
+    AUX_LAYER_DISC,
+    AUX_LAYER_RIGMASK,
 } AuxLayerType;
 
 /* Structs for parameters */
 
-typedef struct
-{
-  gboolean chain_active;
-  gboolean pres_status;
-  gboolean disc_status;
-  gboolean rigmask_status;
-  gint last_used_width;
-  gint last_used_height;
-  gint32 last_layer_ID;
-  gboolean seams_control_expanded;
-  gboolean operations_expanded;
-  gboolean dlg_has_pos;
-  gint dlg_x;
-  gint dlg_y;
-  gint32 layer_on_edit_ID;
-  AuxLayerType layer_on_edit_type;
-  gboolean layer_on_edit_is_new;
+typedef struct {
+    gint32 image_ID;
+} PlugInImageVals;
+
+typedef struct {
+    gint32 layer_ID;
+} PlugInDrawableVals;
+
+typedef struct {
+    gboolean chain_active;
+    gboolean pres_status;
+    gboolean disc_status;
+    gboolean rigmask_status;
+    gint last_used_width;
+    gint last_used_height;
+    gint32 last_layer_ID;
+    gboolean seams_control_expanded;
+    gboolean operations_expanded;
+    gboolean dlg_has_pos;
+    gint dlg_x;
+    gint dlg_y;
+    gint32 layer_on_edit_ID;
+    AuxLayerType layer_on_edit_type;
+    gboolean layer_on_edit_is_new;
 } PlugInUIVals;
 
 #define PLUGIN_UI_VALS(data) ((PlugInUIVals*)data)
 
-typedef struct
-{
-  gdouble r1;
-  gdouble g1;
-  gdouble b1;
-  gdouble r2;
-  gdouble g2;
-  gdouble b2;
+typedef struct {
+    gdouble r1;
+    gdouble g1;
+    gdouble b1;
+    gdouble r2;
+    gdouble g2;
+    gdouble b2;
 } PlugInColVals;
 
-typedef struct
-{
-  gboolean has_pos;
-  gint x;
-  gint y;
+typedef struct {
+    gboolean has_pos;
+    gint x;
+    gint y;
 } PlugInDialogVals;
 
 #define PLUGIN_DIALOG_VALS(data) ((PlugInDialogVals*)data)
@@ -68,11 +72,10 @@ typedef struct
 
 /* Output target */
 
-enum _OutputTarget
-{
-  OUTPUT_TARGET_SAME_LAYER,
-  OUTPUT_TARGET_NEW_LAYER,
-  OUTPUT_TARGET_NEW_IMAGE
+enum _OutputTarget {
+    OUTPUT_TARGET_SAME_LAYER,
+    OUTPUT_TARGET_NEW_LAYER,
+    OUTPUT_TARGET_NEW_IMAGE
 };
 
 typedef enum _OutputTarget OutputTarget;
@@ -80,12 +83,11 @@ typedef enum _OutputTarget OutputTarget;
 
 /* Scaleback modes */
 
-enum _ScalebackMode
-{
-  SCALEBACK_MODE_LQRBACK,
-  SCALEBACK_MODE_STD,
-  SCALEBACK_MODE_STDW,
-  SCALEBACK_MODE_STDH
+enum _ScalebackMode {
+    SCALEBACK_MODE_LQRBACK,
+    SCALEBACK_MODE_STD,
+    SCALEBACK_MODE_STDW,
+    SCALEBACK_MODE_STDH
 };
 
 typedef enum _ScalebackMode ScalebackMode;
@@ -101,7 +103,7 @@ extern const PlugInColVals default_col_vals;
 /* Convenience macros for checking */
 
 #define IMAGE_CHECK_ACTION(image_ID, action, ret_val) G_STMT_START { \
-  if (!gimp_image_is_valid (image_ID)) \
+  if (!gimp_image_is_valid_id (image_ID)) \
     { \
       g_message (_("Error: invalid image")); \
       action; \
@@ -112,7 +114,7 @@ extern const PlugInColVals default_col_vals;
 #define IMAGE_CHECK(image_ID, ret_val) IMAGE_CHECK_ACTION (image_ID, , ret_val)
 
 #define LAYER_CHECK_ACTION(layer_ID, action, ret_val) G_STMT_START { \
-  if (!gimp_drawable_is_valid (layer_ID)) \
+  if (!gimp_drawable_is_valid_id(layer_ID)) \
     { \
       g_message (_("Error: invalid layer")); \
       action; \

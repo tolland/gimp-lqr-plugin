@@ -20,8 +20,8 @@ typedef struct
 /*  Public functions  */
 
 gint
-dialog_I (GimpImage *image,
-          GimpDrawable *drawable,
+dialog_I (PlugInImageVals * image_vals,
+          PlugInDrawableVals * drawable_vals,
           PlugInVals * vals,
           PlugInUIVals * ui_vals,
           PlugInColVals * col_vals,

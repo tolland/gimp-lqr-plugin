@@ -32,13 +32,13 @@ struct _AltSizeEntryField {
     gdouble lower;
     gdouble upper;
 
-    GtkObject *value_adjustment;
+    GtkAdjustment *value_adjustment;
     GtkWidget *value_spinbutton;
     gdouble value;
     gdouble min_value;
     gdouble max_value;
 
-    GtkObject *refval_adjustment;
+    GtkAdjustment *refval_adjustment;
     GtkWidget *refval_spinbutton;
     gdouble refval;
     gdouble min_refval;
@@ -120,7 +120,7 @@ alt_size_entry_init(AltSizeEntry *gse) {
     gse->fields = NULL;
     gse->number_of_fields = 0;
     gse->unitmenu = NULL;
-    gse->unit = GIMP_UNIT_PIXEL;
+    gse->unit = gimp_unit_percent();
     gse->menu_show_pixels = TRUE;
     gse->menu_show_percent = TRUE;
     gse->show_refval = FALSE;
@@ -255,14 +255,10 @@ alt_size_entry_new(gint number_of_fields,
         gsef->stop_recursion = 0;
 
         digits = ((unit == GIMP_UNIT_PIXEL) ?
-                  gsef->refval_digits : ((unit == GIMP_UNIT_PERCENT) ?
+                  gsef->refval_digits : ((unit == gimp_unit_percent()) ?
                                          2 : ALT_SIZE_ENTRY_DIGITS (unit)));
 
-        gsef->value_spinbutton = gimp_spin_button_new(&gsef->value_adjustment,
-                                                      gsef->value,
-                                                      gsef->min_value,
-                                                      gsef->max_value,
-                                                      1.0, 10.0, 0.0,
+        gsef->value_spinbutton = gimp_spin_button_new(gsef->value_adjustment,
                                                       1.0, digits);
 
         if (spinbutton_width > 0) {
@@ -284,10 +280,8 @@ alt_size_entry_new(gint number_of_fields,
 
         if (gse->show_refval) {
             gsef->refval_spinbutton =
-                    gimp_spin_button_new(&gsef->refval_adjustment,
-                                         gsef->refval,
-                                         gsef->min_refval, gsef->max_refval,
-                                         1.0, 10.0, 0.0, 1.0, gsef->refval_digits);
+                    gimp_spin_button_new(gsef->refval_adjustment,
+                                         1.0, gsef->refval_digits);
 
             gtk_widget_set_size_request(gsef->refval_spinbutton,
                                         spinbutton_width, -1);
@@ -307,9 +301,19 @@ alt_size_entry_new(gint number_of_fields,
                                        gsef->refval_digits);
     }
 
-    gse->unitmenu = gimp_unit_menu_new(unit_format, unit,
-                                       gse->menu_show_pixels,
-                                       gse->menu_show_percent, TRUE);
+    GimpUnitStore *store;
+    store = gimp_unit_store_new(0); // 0 for default pixel digits
+
+// Configure what units to show
+    gimp_unit_store_set_has_pixels(store, gse->menu_show_pixels);
+    gimp_unit_store_set_has_percent(store, gse->menu_show_percent);
+
+// Create the combo box with the configured store
+    gse->unitmenu = gimp_unit_combo_box_new_with_model(store);
+    g_object_unref(store);
+
+// Set the initial unit
+    gimp_unit_combo_box_set_active(GIMP_UNIT_COMBO_BOX(gse->unitmenu), unit);
 
     /** CUSTOMIZATION BEGIN **/
     /*
@@ -378,7 +382,7 @@ alt_size_entry_add_field(AltSizeEntry *gse,
     gsef->stop_recursion = 0;
 
     gsef->value_adjustment =
-            GTK_OBJECT(gtk_spin_button_get_adjustment(value_spinbutton));
+            gtk_spin_button_get_adjustment(value_spinbutton);
     gsef->value_spinbutton = GTK_WIDGET (value_spinbutton);
     g_signal_connect (gsef->value_adjustment, "value-changed",
                       G_CALLBACK(alt_size_entry_value_callback),
@@ -386,15 +390,15 @@ alt_size_entry_add_field(AltSizeEntry *gse,
 
     if (gse->show_refval) {
         gsef->refval_adjustment =
-                GTK_OBJECT(gtk_spin_button_get_adjustment(refval_spinbutton));
+                gtk_spin_button_get_adjustment(refval_spinbutton);
         gsef->refval_spinbutton = GTK_WIDGET (refval_spinbutton);
         g_signal_connect (gsef->refval_adjustment, "value-changed",
                           G_CALLBACK(alt_size_entry_refval_callback),
                           gsef);
     }
 
-    digits = ((gse->unit == GIMP_UNIT_PIXEL) ? gsef->refval_digits :
-              (gse->unit == GIMP_UNIT_PERCENT) ? 2 :
+    digits = ((gse->unit == gimp_unit_pixel()) ? gsef->refval_digits :
+              (gse->unit == gimp_unit_percent()) ? 2 :
               ALT_SIZE_ENTRY_DIGITS (gse->unit));
 
     gtk_spin_button_set_digits(GTK_SPIN_BUTTON (value_spinbutton), digits);
@@ -593,7 +597,7 @@ alt_size_entry_set_value_boundaries(AltSizeEntry *gse,
             break;
 
         case ALT_SIZE_ENTRY_UPDATE_SIZE:
-            switch (gse->unit) {
+            switch (gimp_unit_get_id(gse->unit)) {
                 case GIMP_UNIT_PIXEL:
                     alt_size_entry_set_refval_boundaries(gse, field,
                                                          gsef->min_value,
@@ -678,7 +682,7 @@ alt_size_entry_update_value(AltSizeEntryField *gsef,
             break;
 
         case ALT_SIZE_ENTRY_UPDATE_SIZE:
-            switch (gsef->gse->unit) {
+            switch (gimp_unit_get_id(gsef->gse->unit)) {
                 case GIMP_UNIT_PIXEL:
                     gsef->refval = value;
                     break;
@@ -807,7 +811,7 @@ alt_size_entry_set_refval_boundaries(AltSizeEntry *gse,
             break;
 
         case ALT_SIZE_ENTRY_UPDATE_SIZE:
-            switch (gse->unit) {
+            switch (gimp_unit_get_id(gse->unit)) {
                 case GIMP_UNIT_PIXEL:
                     alt_size_entry_set_value_boundaries(gse, field,
                                                         gsef->min_refval,
@@ -926,7 +930,7 @@ alt_size_entry_update_refval(AltSizeEntryField *gsef,
             break;
 
         case ALT_SIZE_ENTRY_UPDATE_SIZE:
-            switch (gsef->gse->unit) {
+            switch (gimp_unit_get_id(gsef->gse->unit)) {
                 case GIMP_UNIT_PIXEL:
                     gsef->value = refval;
                     break;
@@ -1046,7 +1050,7 @@ alt_size_entry_update_unit(AltSizeEntry *gse,
             if (unit == GIMP_UNIT_PIXEL)
                 gtk_spin_button_set_digits(GTK_SPIN_BUTTON (gsef->value_spinbutton),
                                            gsef->refval_digits + digits);
-            else if (unit == GIMP_UNIT_PERCENT)
+            else if (unit == gimp_unit_percent())
                 gtk_spin_button_set_digits(GTK_SPIN_BUTTON (gsef->value_spinbutton),
                                            2 + digits);
             else
@@ -1084,8 +1088,8 @@ void
 alt_size_entry_set_unit(AltSizeEntry *gse,
                         GimpUnit *unit) {
     g_return_if_fail (ALT_IS_SIZE_ENTRY(gse));
-    g_return_if_fail (gse->menu_show_pixels || (unit != GIMP_UNIT_PIXEL));
-    g_return_if_fail (gse->menu_show_percent || (unit != GIMP_UNIT_PERCENT));
+    g_return_if_fail (gse->menu_show_pixels || (unit != gimp_unit_pixel()));
+    g_return_if_fail (gse->menu_show_percent || (unit != gimp_unit_percent()));;
 
     // @TODO fix migration
     //gimp_unit_menu_set_unit(GIMP_UNIT_MENU(gse->unitmenu), unit);
@@ -1097,8 +1101,7 @@ alt_size_entry_unit_callback(GtkWidget *widget,
                              AltSizeEntry *gse) {
     GimpUnit *new_unit;
 
-    // @TODO fix migration
-//    new_unit = gimp_unit_menu_get_unit(GIMP_UNIT_MENU(widget));
+    new_unit = gimp_unit_combo_box_get_active(GIMP_UNIT_COMBO_BOX(widget));
 
     if (gse->unit != new_unit)
         alt_size_entry_update_unit(gse, new_unit);
@@ -1137,14 +1140,16 @@ alt_size_entry_show_unit_menu(AltSizeEntry *gse,
 void
 alt_size_entry_set_pixel_digits(AltSizeEntry *gse,
                                 gint digits) {
-    GimpUnitMenu *menu;
+    GimpUnitComboBox *combo;
 
     g_return_if_fail (ALT_IS_SIZE_ENTRY(gse));
 
-    menu = GIMP_UNIT_MENU(gse->unitmenu);
+    combo = GIMP_UNIT_COMBO_BOX(gse->unitmenu);
 
-    gimp_unit_menu_set_pixel_digits(menu, digits);
-    alt_size_entry_update_unit(gse, gimp_unit_menu_get_unit(menu));
+    // @TODO no obvious way to replace this
+    // gimp_unit_menu_set_pixel_digits(menu, digits);
+
+    alt_size_entry_update_unit(gse, gimp_unit_combo_box_get_active(combo));
 }
 
 

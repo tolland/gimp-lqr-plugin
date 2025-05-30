@@ -2,11 +2,13 @@
 
 bin_PROGRAMS = gimp-lqr-plugin
 
-bindir = $(GIMP_LIBDIR)/plug-ins
+# bindir = $(GIMP_LIBDIR)/plug-ins
+bindir = $(GIMP_LIBDIR)/plug-ins/gimp-lqr-plugin
 
 gimp_lqr_plugin_SOURCES = \
 	plugin-intl.h    \
 	main_common.h    \
+	compat.h    \
 	main.c	         \
 	main.h	         \
 	interface.c      \

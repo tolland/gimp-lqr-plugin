@@ -270,7 +270,9 @@ am__leading_dot = @am__leading_dot@
 am__quote = @am__quote@
 am__tar = @am__tar@
 am__untar = @am__untar@
-bindir = $(GIMP_LIBDIR)/plug-ins
+
+# bindir = $(GIMP_LIBDIR)/plug-ins
+bindir = $(GIMP_LIBDIR)/plug-ins/gimp-lqr-plugin
 build_alias = @build_alias@
 builddir = @builddir@
 datadir = @datadir@
@@ -308,6 +310,7 @@ top_srcdir = @top_srcdir@
 gimp_lqr_plugin_SOURCES = \
 	plugin-intl.h    \
 	main_common.h    \
+	compat.h    \
 	main.c	         \
 	main.h	         \
 	interface.c      \

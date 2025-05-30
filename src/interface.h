@@ -22,24 +22,22 @@
 
 /* Data structs for callbacks */
 
-typedef struct
-{
-  gpointer ui_vals;
-  gpointer button;
+typedef struct {
+    gpointer ui_vals;
+    gpointer button;
 } PresDiscStatus;
 
 #define PRESDISC_STATUS(data) ((PresDiscStatus*)data)
 
-typedef struct
-{
-  GtkWidget *notebook;
-  GtkWidget *features_page;
-  GtkWidget *advanced_page;
-  gint features_page_ID;
-  gint advanced_page_ID;
-  GtkWidget *label;
-  gint32 image_ID;
-  gint32 layer_ID;
+typedef struct {
+    GtkWidget *notebook;
+    GtkWidget *features_page;
+    GtkWidget *advanced_page;
+    gint features_page_ID;
+    gint advanced_page_ID;
+    GtkWidget *label;
+    gint32 image_ID;
+    gint32 layer_ID;
 } NotebookData;
 
 #define NOTEBOOK_DATA(data) ((NotebookData*)data)
@@ -47,12 +45,12 @@ typedef struct
 
 /*  Public functions  */
 
-gint dialog (GimpImage *image,
-            GimpDrawable *drawable,
-            PlugInVals * vals,
-            PlugInUIVals * ui_vals,
-            PlugInColVals * col_vals,
-            PlugInDialogVals * dialog_vals);
+gint dialog(PlugInImageVals *image_vals,
+            PlugInDrawableVals *drawable_vals,
+            PlugInVals *vals,
+            PlugInUIVals *ui_vals,
+            PlugInColVals *col_vals,
+            PlugInDialogVals *dialog_vals);
 
 
 #endif /* __INTERFACE_H__ */
