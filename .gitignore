@@ -24,3 +24,4 @@ gap/plug_in_lqr_iter
 po/stamp-it
 po/Makefile.in
 /.cache/
+/_install/
