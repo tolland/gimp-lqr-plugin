@@ -1,6 +1,6 @@
 dnl Process this file with autoconf to produce a configure script.
 
-AC_PREREQ(2.54)
+AC_PREREQ([2.69])
 
 dnl Name your plug-in here
 m4_define([plugin_name], [gimp-lqr-plugin])
@@ -23,31 +23,24 @@ AC_DEFINE(PLUGIN_MINOR_VERSION, plugin_minor_version, [Plug-In minor version])
 AC_DEFINE(PLUGIN_MICRO_VERSION, plugin_micro_version, [Plug-In micro version])
 
 AC_CONFIG_SRCDIR([src/main.c])
-AM_CONFIG_HEADER(config.h)
+AC_CONFIG_HEADERS([config.h])
 
-AM_INIT_AUTOMAKE(no-define)
+AM_INIT_AUTOMAKE([no-define])
 
-dnl AC_ISC_POSIX
 AC_PROG_CC
-AM_PROG_CC_STDC
-AC_HEADER_STDC
-
+AC_PROG_CC_C99
 
 ACLOCAL="$ACLOCAL $ACLOCAL_FLAGS"
 
 AM_MAINTAINER_MODE
 
-
 dnl Use -Wall if we have gcc.
-changequote(,)dnl
-if test "x$GCC" = "xyes"; then
+AS_IF([test "x$GCC" = "xyes"], [
   case " $CFLAGS " in
   *[\ \	]-Wall[\ \	]*) ;;
   *) CFLAGS="$CFLAGS -Wall" ;;
   esac
-fi
-changequote([,])dnl
-
+])
 
 GIMP_REQUIRED_VERSION=3.0.0
 
@@ -70,16 +63,11 @@ LQR_REQUIRED_VERSION=0.4.0
 PKG_CHECK_MODULES(LQR,
 		  lqr-1 >= $LQR_REQUIRED_VERSION)
 
-dnl LQR_CFLAGS=`$PKG_CONFIG --cflags lqr-1`
 AC_SUBST(LQR_CFLAGS)
-
-dnl LQR_LIBS=`$PKG_CONFIG --libs lqr-1`
 AC_SUBST(LQR_LIBS)
 
 LQR_LIBDIR=`$PKG_CONFIG --variable=libdir lqr-1`
 AC_SUBST(LQR_LIBDIR)
-
-
 
 dnl i18n stuff
 
@@ -91,7 +79,7 @@ AC_DEFINE_UNQUOTED(GETTEXT_PACKAGE, "$GETTEXT_PACKAGE",
 dnl Add the languages which your application supports here.
 ALL_LINGUAS="it fr ru pt_BR de eu_ES zh_CN es_AR hu ro_RO sr es_ES nb_NO zh_TW"
 
-AC_PROG_INTLTOOL
+IT_PROG_INTLTOOL([0.35.0])
 AM_GLIB_GNU_GETTEXT
 
 AC_CHECK_FUNCS(bind_textdomain_codeset)
@@ -105,9 +93,16 @@ AC_SUBST(LOCALEDIR)
 PLUGIN_DATADIR="${datadir}/plugin_name"
 AC_SUBST(PLUGIN_DATADIR)
 
-# SCRIPTSDIR="${GIMP_DATADIR}/scripts"
 SCRIPTSDIR="${GIMP_LIBDIR}/scripts"
 AC_SUBST(SCRIPTSDIR)
+
+# Set default installation paths for GIMP plugin
+prefix=$HOME/.config/GIMP/3.0
+bindir=$HOME/.config/GIMP/3.0/plug-ins
+datadir=$HOME/.config/GIMP/3.0
+
+# Enable debug by default
+CFLAGS="$CFLAGS -g -O0 -DDEBUG"
 
 AC_MSG_CHECKING([if GTK+ is version 2.12.0 or newer])
 if $PKG_CONFIG --atleast-version=2.12.0 gtk+-2.0; then
