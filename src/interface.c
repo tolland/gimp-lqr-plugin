@@ -21,6 +21,7 @@
 #include <gtk/gtk.h>
 #include <libgimp/gimp.h>
 #include <libgimp/gimpui.h>
+#include "compat.h"
 #include "altsizeentry.h"
 #include "altcoordinates.h"
 
@@ -638,8 +639,7 @@ dialog(PlugInImageVals *image_vals,
                       G_CALLBACK(callback_out_seams_button),
                       (gpointer) &(state->output_seams));
 
-
-    colour = g_new (GeglColor, 1);
+    colour = gegl_color_new("black");
     gegl_color_set_rgba(colour, col_vals->r2, col_vals->g2, col_vals->b2, 1.0);
 
 //    //gimp_rgba_set(colour, col_vals->r2, col_vals->g2, col_vals->b2, 1);
@@ -675,7 +675,7 @@ dialog(PlugInImageVals *image_vals,
     gimp_help_set_help_data(out_seams_col_button1,
                             _("Colour to use for the first seams"), NULL);
 
-    g_free(colour);
+//    g_free(colour);
 
     scaleback_button =
             gtk_check_button_new_with_label(_("Scale back to the original size"));
@@ -1448,32 +1448,30 @@ features_page_new(gint32 image_ID, gint32 layer_ID) {
 //    ScaleEntry *adj = create_scale_entry(GTK_GRID(grid), row++, _("Strength:"),
 //                                         state->pres_coeff, 0, MAX_COEFF);
 
-    GtkAdjustment *adj_strength;
-    GtkWidget *scale_entry_strength = gimp_prop_scale_entry_new(G_OBJECT(adj_strength),
-                                                       "value",
-//                                                       0,
-//                                                       row,
-                                                       _("Strength:"),
-                                                       1,
-                                                       10,
-                                                       0,
-                                                       10
+    GtkWidget *table = gtk_grid_new();
+    gtk_container_set_border_width(GTK_CONTAINER (table), 4);
+    gtk_grid_set_column_spacing(GTK_GRID (table), 4);
+    gtk_grid_set_row_spacing(GTK_GRID (table), 2);
+    gtk_box_pack_start(GTK_BOX (pres_vbox2), table, FALSE, FALSE, 0);
+    gtk_widget_show(table);
+
+    row = 0;
+
+    GtkWidget *something;
+    something = gimp_scale_entry_new(_("Max enlargement per step:"),
+                                     state->pres_coeff,
+                                     0,
+                                     MAX_COEFF,
+                                     0
     );
 
-    g_signal_connect (adj_strength, "value_changed",
-                      G_CALLBACK(gimp_int_adjustment_update),
-                      &state->pres_coeff);
+    g_signal_connect (something, "value_changed",
+                      G_CALLBACK(gimp_float_adjustment_update),
+                      &state->enl_step);
 
-    // @TODO
-//    gtk_widget_set_sensitive(GIMP_SCALE_ENTRY_LABEL(adj),
-//                             (ui_state->pres_status
-//                              && features_are_sensitive));
-//    gtk_widget_set_sensitive(GIMP_SCALE_ENTRY_SCALE(adj),
-//                             (ui_state->pres_status
-//                              && features_are_sensitive));
-//    gtk_widget_set_sensitive(GIMP_SCALE_ENTRY_SPINBUTTON(adj),
-//                             (ui_state->pres_status
-//                              && features_are_sensitive));
+
+
+
 //    pres_toggle_data.scale = adj;
 
     pres_toggle_data.status = &(ui_state->pres_status);
@@ -1663,7 +1661,7 @@ features_page_new(gint32 image_ID, gint32 layer_ID) {
 
     combo =
             gimp_layer_combo_box_new(dialog_layer_constraint_func,
-                                     (gpointer) (&layer_ID),
+                                     layer,
                                      NULL);
 
     g_object_set(combo, "ellipsize", PANGO_ELLIPSIZE_START, NULL);
@@ -1789,8 +1787,6 @@ gimp_table_attach_aligned (GtkTable *table,
                                                   state->disc_coeff, // initial value
                                                   0,                 // lower bound
                                                   MAX_COEFF,         // upper bound
-//                                       1,                 // step increment
-//                                       10,                // page increment
                                                   0);                // digits
 
     //adj = gimp_scale_entry_get_adjustment(GIMP_SCALE_ENTRY(scale_entry));
@@ -1947,6 +1943,8 @@ advanced_page_new(gint32 image_ID, gint32 layer_ID) {
     GtkWidget *nrg_event_box;
     GtkWidget *res_order_event_box;
 
+    GimpLayer *layer = gimp_layer_get_by_id(layer_ID);
+
     label = gtk_label_new(_("Advanced"));
     notebook_data->label = label;
 
@@ -1961,7 +1959,7 @@ advanced_page_new(gint32 image_ID, gint32 layer_ID) {
                _("%s rigidity mask"),
                gimp_drawable_get_name_id(preview_data.orig_layer_ID));
 
-
+    new_rigmask_layer_data->colour = gegl_color_new("black");
     // gimp_rgb_set(&(new_rigmask_layer_data->colour), 0, 0, 1);
     gegl_color_set_rgba(new_rigmask_layer_data->colour, 0.0, 0.0, 1.0, 1.0);
 
@@ -2042,7 +2040,7 @@ advanced_page_new(gint32 image_ID, gint32 layer_ID) {
 //                                 "Increasing this value allows to overcome "
 //                                 "the 45 degrees bound"), NULL);
 
-    GtkWidget *scale_entry_max_traversal_step;;
+    GtkWidget *scale_entry_max_traversal_step;
     GtkAdjustment *scale_entry_adj_max_traversal_step;
 
     scale_entry_max_traversal_step = gimp_scale_entry_new(_("Max transversal step:"),    // label text
@@ -2054,7 +2052,7 @@ advanced_page_new(gint32 image_ID, gint32 layer_ID) {
                                                           0                // digits
     );
 
-    g_signal_connect (scale_entry_adj_max_traversal_step, "value_changed",
+    g_signal_connect (scale_entry_max_traversal_step, "value_changed",
                       G_CALLBACK(gimp_int_adjustment_update), &state->delta_x);
 
     /* Rigidity */
@@ -2090,7 +2088,7 @@ advanced_page_new(gint32 image_ID, gint32 layer_ID) {
                                                         0                // digits
     );
 
-    g_signal_connect (scale_entry_adj_overall_rigidity, "value_changed",
+    g_signal_connect (scale_entry_overall_rigidity, "value_changed",
                       G_CALLBACK(gimp_float_adjustment_update),
                       &state->rigidity);
 
@@ -2236,7 +2234,7 @@ advanced_page_new(gint32 image_ID, gint32 layer_ID) {
 
     combo =
             gimp_layer_combo_box_new(dialog_layer_constraint_func,
-                                     (gpointer) (&layer_ID),
+                                     layer,
                                      NULL);
 
     g_object_set(combo, "ellipsize", PANGO_ELLIPSIZE_START, NULL);

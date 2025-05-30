@@ -18,6 +18,7 @@
 
 
 #include "config.h"
+#include <stdio.h>
 
 #include <string.h>
 
@@ -27,7 +28,7 @@
 #include <libgimp/gimpui.h>
 #include <lqr.h>
 #include "altsizeentry.h"
-
+#include <libgimp/gimp.h>
 #include "plugin-intl.h"
 
 #include "main.h"
@@ -37,40 +38,6 @@
 #include "interface_aux.h"
 
 #include <glib-object.h>
-
-/*  Local function prototypes  */
-
-static gint32 layer_from_name(gint32 image_ID, gchar *name);
-
-static void set_aux_layer_name(GimpLayer *layer, gboolean status, gchar *name);
-
-static void save_vals(void);
-
-static void retrieve_vals(void);
-
-static void retrieve_vals_use_aux_layers_names(gint32 image_ID);
-
-static void noninteractive_read_vals(GimpProcedureConfig *config, GimpImage *image);
-
-static void install_custom_signals();
-
-static void cancel_work_on_aux_layer(void);
-
-#if defined(G_OS_WIN32)
-static gchar * get_gimp_share_directory_on_windows();
-#endif
-
-static GimpProcedure *create_procedure(GimpPlugIn *plug_in,
-                                       const gchar *name);
-
-static GimpValueArray *lqr_run(GimpProcedure *procedure,
-                               GimpRunMode run_mode,
-                               GimpImage *image,
-//                                  gint                  n_drawables,
-                               GimpDrawable **drawables,
-                               GimpProcedureConfig *config,
-                               gpointer run_data);
-
 
 /*  Local variables  */
 
@@ -170,7 +137,7 @@ initialize_default_colors(void) {
 static PlugInVals vals;
 static PlugInImageVals image_vals;
 static PlugInDrawableVals drawable_vals;
-static GimpImage *image = NULL;
+//static GimpImage *image = NULL;
 static GimpDrawable *drawable = NULL;
 static PlugInUIVals ui_vals;
 static PlugInColVals col_vals;
@@ -201,7 +168,10 @@ static GimpProcedure *lqr_create_procedure(GimpPlugIn *plug_in,
 
 G_DEFINE_TYPE (LqrPlugin, lqr_plugin, GIMP_TYPE_PLUG_IN)
 
-GIMP_MAIN (LQR_TYPE_PLUGIN)
+//GIMP_MAIN (LQR_TYPE_PLUGIN)
+int main(int argc, char *argv[]) {
+    return gimp_main((lqr_plugin_get_type()), argc, argv);
+}
 
 static void
 lqr_plugin_class_init(LqrPluginClass *klass) {
@@ -214,6 +184,7 @@ lqr_plugin_class_init(LqrPluginClass *klass) {
 
 static void
 lqr_plugin_init(LqrPlugin *lqr) {
+
 }
 
 static GList *
@@ -224,6 +195,9 @@ lqr_query_procedures(GimpPlugIn *plug_in) {
 static GimpProcedure *
 lqr_create_procedure(GimpPlugIn *plug_in,
                      const gchar *name) {
+//    g_message ("calling lqr_create_procedure for %s", name);
+
+
     return create_procedure(plug_in, name);
 }
 
@@ -231,6 +205,8 @@ static GimpProcedure *
 create_procedure(GimpPlugIn *plug_in,
                  const gchar *name) {
     GimpProcedure *procedure = NULL;
+
+    g_message ("calling create_proceduresure for %s", name);
 
     if (g_strcmp0(name, PLUG_IN_NAME) == 0) {
         procedure = gimp_image_procedure_new(plug_in, name,
@@ -411,8 +387,8 @@ lqr_run(GimpProcedure *procedure,
         GimpDrawable **drawables,
         GimpProcedureConfig *config,
         gpointer run_data) {
+
     GimpPDBStatusType status = GIMP_PDB_SUCCESS;
-    GimpDrawable *drawable;
     gint32 layer_ID;
     gint32 image_ID;
 
@@ -422,6 +398,8 @@ lqr_run(GimpProcedure *procedure,
     gint dialog_I_resp;
     gint dialog_aux_resp;
     gboolean render_success = FALSE;
+
+    g_message ("got here1");
 
     /*  Initialize i18n support  */
 #if defined(G_OS_WIN32)
@@ -437,12 +415,38 @@ lqr_run(GimpProcedure *procedure,
     /* Initialize default colors */
     initialize_default_colors();
 
+
+    g_message ("got here1 initialize_default_colors");
+
+
+    /*  Initialize with default values  */
+    vals = default_vals;
+    image_vals = default_image_vals;
+    drawable_vals = default_drawable_vals;
+//    image = gimp_image_get_by_id(image_ID);
+//    drawable = gimp_drawable_get_by_id(layer_ID);
+
+    ui_vals = default_ui_vals;
+    col_vals = default_col_vals;
+    dialog_vals = default_dialog_vals;
+
+
     /* Get the first drawable (layer) */
     drawable = drawables[0];
     layer_ID = gimp_item_get_id(GIMP_ITEM(drawable));
+
+
+    if (!layer_ID) {
+        g_message("Warning: layer_ID is not populated");
+    }
     image_ID = gimp_image_get_id(image);
-    image_vals = default_image_vals;
-    drawable_vals = default_drawable_vals;
+    if (!image_ID) {
+        g_message("Warning: image_ID is not populated");
+    }
+
+    if (layer_ID) {
+        g_message ("got here1 layer_ID");
+    }
 
     if (gimp_item_is_channel(GIMP_ITEM(drawable))) {
         gimp_image_unset_active_channel(image);
@@ -456,14 +460,10 @@ lqr_run(GimpProcedure *procedure,
         g_free(selected_layers);
     }
 
+    g_message ("got here");
 
-    /*  Initialize with default values  */
-    vals = default_vals;
-    image = gimp_image_get_by_id(image_ID);
-    drawable = gimp_drawable_get_by_id(layer_ID);
-    ui_vals = default_ui_vals;
-    col_vals = default_col_vals;
-    dialog_vals = default_dialog_vals;
+    image_vals.image_ID = image_ID;
+    drawable_vals.layer_ID = layer_ID;
 
     switch (run_mode) {
         case GIMP_RUN_NONINTERACTIVE:
@@ -557,7 +557,7 @@ lqr_run(GimpProcedure *procedure,
 
     if (status == GIMP_PDB_SUCCESS) {
         // @TODO find migration path for image_ID
-        //IMAGE_CHECK (image_ID, return gimp_procedure_new_return_values (procedure, GIMP_PDB_EXECUTION_ERROR, NULL));
+        IMAGE_CHECK (image_ID, NULL);
         AUX_LAYER_STATUS(vals.pres_layer_ID, ui_vals.pres_status);
         AUX_LAYER_STATUS(vals.disc_layer_ID, ui_vals.disc_status);
         AUX_LAYER_STATUS(vals.rigmask_layer_ID, ui_vals.rigmask_status);

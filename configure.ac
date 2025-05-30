@@ -23,7 +23,6 @@ AC_DEFINE(PLUGIN_MINOR_VERSION, plugin_minor_version, [Plug-In minor version])
 AC_DEFINE(PLUGIN_MICRO_VERSION, plugin_micro_version, [Plug-In micro version])
 
 AC_CONFIG_SRCDIR([src/main.c])
-dnl AC_CONFIG_SRCDIR([gap/plug_in_lqr_iter.c])
 AM_CONFIG_HEADER(config.h)
 
 AM_INIT_AUTOMAKE(no-define)
@@ -58,7 +57,9 @@ PKG_CHECK_MODULES(GIMP,
 AC_SUBST(GIMP_CFLAGS)
 AC_SUBST(GIMP_LIBS)
 
-GIMP_LIBDIR=`$PKG_CONFIG --variable=gimplibdir gimp-3.0`
+# GIMP_LIBDIR=`$PKG_CONFIG --variable=gimplibdir gimp-3.0`
+GIMP_LIBDIR=${HOME}/.config/GIMP/3.0
+
 AC_SUBST(GIMP_LIBDIR)
 
 GIMP_DATADIR=`$PKG_CONFIG --variable=gimpdatadir gimp-3.0`
@@ -104,7 +105,8 @@ AC_SUBST(LOCALEDIR)
 PLUGIN_DATADIR="${datadir}/plugin_name"
 AC_SUBST(PLUGIN_DATADIR)
 
-SCRIPTSDIR="${GIMP_DATADIR}/scripts"
+# SCRIPTSDIR="${GIMP_DATADIR}/scripts"
+SCRIPTSDIR="${GIMP_LIBDIR}/scripts"
 AC_SUBST(SCRIPTSDIR)
 
 AC_MSG_CHECKING([if GTK+ is version 2.12.0 or newer])
@@ -149,7 +151,6 @@ fi
 AC_CONFIG_FILES([
 Makefile
 src/Makefile
-gap/Makefile
 batch/Makefile
 po/Makefile.in
 help/Makefile

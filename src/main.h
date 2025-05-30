@@ -4,6 +4,42 @@
 
 #include "main_common.h"
 
+
+/*  Local function prototypes  */
+
+static gint32 layer_from_name(gint32 image_ID, gchar *name);
+
+static void set_aux_layer_name(GimpLayer *layer, gboolean status, gchar *name);
+
+static void save_vals(void);
+
+static void retrieve_vals(void);
+
+static void retrieve_vals_use_aux_layers_names(gint32 image_ID);
+
+static void noninteractive_read_vals(GimpProcedureConfig *config, GimpImage *image);
+
+static void install_custom_signals();
+
+static void cancel_work_on_aux_layer(void);
+
+#if defined(G_OS_WIN32)
+static gchar * get_gimp_share_directory_on_windows();
+#endif
+
+static GimpProcedure *create_procedure(GimpPlugIn *plug_in,
+                                       const gchar *name);
+
+static GimpValueArray *lqr_run(GimpProcedure *procedure,
+                               GimpRunMode run_mode,
+                               GimpImage *image,
+//                                  gint                  n_drawables,
+                               GimpDrawable **drawables,
+                               GimpProcedureConfig *config,
+                               gpointer run_data);
+
+
+
 /* Additional responses for dialog */
 
 #define RESPONSE_REFRESH (1)

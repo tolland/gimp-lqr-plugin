@@ -54,7 +54,11 @@ count_extra_layers(gint32 image_ID) {
 //}
 
 gboolean
-dialog_layer_constraint_func(GimpImage *image, GimpItem *item, gpointer data) {
+dialog_layer_constraint_func(
+        GimpImage *image,
+        GimpItem *item,
+        gpointer data
+        ) {
     GimpLayer *ref_layer = GIMP_LAYER(data);
 
     // Check if the item is from the same image as the reference layer

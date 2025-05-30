@@ -5898,7 +5898,9 @@ fi
 
 
 
-GIMP_LIBDIR=`$PKG_CONFIG --variable=gimplibdir gimp-3.0`
+# GIMP_LIBDIR=`$PKG_CONFIG --variable=gimplibdir gimp-3.0`
+GIMP_LIBDIR=${HOME}/.config/GIMP/3.0
+
 
 
 GIMP_DATADIR=`$PKG_CONFIG --variable=gimpdatadir gimp-3.0`
@@ -7468,7 +7470,8 @@ fi
 PLUGIN_DATADIR="${datadir}/gimp-lqr-plugin"
 
 
-SCRIPTSDIR="${GIMP_DATADIR}/scripts"
+# SCRIPTSDIR="${GIMP_DATADIR}/scripts"
+SCRIPTSDIR="${GIMP_LIBDIR}/scripts"
 
 
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking if GTK+ is version 2.12.0 or newer" >&5
@@ -7672,7 +7675,7 @@ else
 printf "%s\n" "no" >&6; }
 fi
 
-ac_config_files="$ac_config_files Makefile src/Makefile gap/Makefile batch/Makefile po/Makefile.in help/Makefile help/en/Makefile help/en/images/Makefile help/it/Makefile help/it/images/Makefile help/ru/Makefile help/ru/images/Makefile help/css/Makefile"
+ac_config_files="$ac_config_files Makefile src/Makefile batch/Makefile po/Makefile.in help/Makefile help/en/Makefile help/en/images/Makefile help/it/Makefile help/it/images/Makefile help/ru/Makefile help/ru/images/Makefile help/css/Makefile"
 
 
 cat >confcache <<\_ACEOF
@@ -8415,7 +8418,6 @@ do
     "default-1") CONFIG_COMMANDS="$CONFIG_COMMANDS default-1" ;;
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
     "src/Makefile") CONFIG_FILES="$CONFIG_FILES src/Makefile" ;;
-    "gap/Makefile") CONFIG_FILES="$CONFIG_FILES gap/Makefile" ;;
     "batch/Makefile") CONFIG_FILES="$CONFIG_FILES batch/Makefile" ;;
     "po/Makefile.in") CONFIG_FILES="$CONFIG_FILES po/Makefile.in" ;;
     "help/Makefile") CONFIG_FILES="$CONFIG_FILES help/Makefile" ;;
