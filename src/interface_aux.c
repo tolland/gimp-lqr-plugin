@@ -67,9 +67,7 @@ extern GeglColor *default_gray_col;
 
 /***  Local functions declariations  ***/
 
-/* Callbacks */
-static void callback_dialog_aux_response(GtkWidget *dialog, gint response_id,
-                                         gpointer data);
+
 
 /***  Local variables  ***/
 
@@ -85,6 +83,8 @@ extern GtkWidget *dlg;
 
 gint
 dialog_aux(
+        GimpImage *image,
+        GimpDrawable **drawables,
         PlugInImageVals *image_vals,
         PlugInDrawableVals *drawable_vals,
         PlugInVals *vals,
@@ -129,24 +129,24 @@ dialog_aux(
     saved_colour = gimp_context_get_foreground();
     gimp_context_set_foreground(fg_colour);
 
-dlg = gtk_dialog_new_with_buttons(_("GIMP LqR Plug-In - Mask editor mode"),
-                                 NULL, 0,
-                                 "_OK", GTK_RESPONSE_OK, NULL);
+    dlg = gtk_dialog_new_with_buttons(_("GIMP LqR Plug-In - Mask editor mode"),
+                                      NULL, 0,
+                                      "_OK", GTK_RESPONSE_OK, NULL);
 
-gtk_window_set_resizable(GTK_WINDOW(dlg), FALSE);
-gtk_window_set_keep_above(GTK_WINDOW(dlg), TRUE);
+    gtk_window_set_resizable(GTK_WINDOW(dlg), FALSE);
+    gtk_window_set_keep_above(GTK_WINDOW(dlg), TRUE);
 
-if (dialog_state->has_pos) {
-   gtk_window_move(GTK_WINDOW(dlg), dialog_state->x, dialog_state->y);
-   dialog_state->has_pos = FALSE;
-}
+    if (dialog_state->has_pos) {
+        gtk_window_move(GTK_WINDOW(dlg), dialog_state->x, dialog_state->y);
+        dialog_state->has_pos = FALSE;
+    }
 
-g_signal_connect(dlg, "response", G_CALLBACK(callback_dialog_aux_response),
-                (gpointer) ia_data);
+    g_signal_connect(dlg, "response", G_CALLBACK(callback_dialog_aux_response),
+                     (gpointer) ia_data);
 
-main_hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 12);
-gtk_container_set_border_width(GTK_CONTAINER(main_hbox), 12);
-gtk_container_add(GTK_CONTAINER(gtk_dialog_get_content_area(GTK_DIALOG(dlg))), main_hbox);
+    main_hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 12);
+    gtk_container_set_border_width(GTK_CONTAINER(main_hbox), 12);
+    gtk_container_add(GTK_CONTAINER(gtk_dialog_get_content_area(GTK_DIALOG(dlg))), main_hbox);
 
     info_icon = gtk_image_new_from_icon_name("dialog-information", GTK_ICON_SIZE_DIALOG);
     gtk_box_pack_start(GTK_BOX (main_hbox), info_icon, TRUE, TRUE, 0);

@@ -26,9 +26,11 @@
 #include <glib/gi18n.h>
 #include <libgimp/gimp.h>
 #include <libgimp/gimpui.h>
-#include <lqr.h>
-#include "altsizeentry.h"
 #include <libgimp/gimp.h>
+#include <glib-object.h>
+#include <lqr.h>
+
+#include "altsizeentry.h"
 #include "plugin-intl.h"
 
 #include "main.h"
@@ -36,85 +38,14 @@
 #include "render.h"
 #include "interface_I.h"
 #include "interface_aux.h"
-
-#include <glib-object.h>
+#include "defaults.h"
 
 /*  Local variables  */
 
-const PlugInVals default_vals = {
-        100,                          /* new width */
-        100,                          /* new height */
-        0,                            /* pres layer ID */
-        1000,                         /* pres coeff */
-        0,                            /* disc layer ID */
-        1000,                         /* disc coeff */
-        0,                            /* rigidity coeff */
-        0,                /* rigmask layer ID */
-        1,                            /* delta x */
-        150,                /* enl step */
-        TRUE,                         /* resize aux layers */
-        TRUE,                         /* resize canvas */
-        OUTPUT_TARGET_SAME_LAYER,     /* output target (same layer, new layer, new image) */
-        FALSE,                        /* output seams */
-        LQR_EF_GRAD_XABS,             /* nrg func */
-        LQR_RES_ORDER_HOR,            /* resize order */
-        GIMP_MASK_APPLY,              /* mask behavior */
-        FALSE,                        /* scaleback */
-        SCALEBACK_MODE_LQRBACK,       /* scaleback mode */
-        TRUE,                         /* no disc upon enlarging */
-        "",                            /* pres_layer_name */
-        "",                           /* disc_layer_name */
-        "",                           /* rigmask_layer_name */
-        "",                           /* selected layer name */
-};
-
-const PlugInColVals default_col_vals = {
-        1,                            /* start colour */
-        1,
-        0,
-        0.2,                          /* end colour */
-        0,
-        0
-};
-
-const PlugInImageVals default_image_vals = {
-        0             /* image ID */
-};
-
-const PlugInDrawableVals default_drawable_vals = {
-        0             /* layer ID */
-};
-
-const PlugInUIVals default_ui_vals = {
-        FALSE,                /* chain active */
-        FALSE,                /* pres status */
-        FALSE,                /* disc status */
-        FALSE,                /* rigmask status */
-        -1,                   /* last used width */
-        -1,                   /* last used height */
-        0,                    /* last layer */
-        FALSE,                /* seams control expanded */
-        FALSE,                /* operations expanded */
-        FALSE,                /* dialog has position */
-        0,                    /* dialog root position x */
-        0,                    /* dialog root position y */
-        0,                    /* layer on edit ID */
-        AUX_LAYER_PRES,       /* layer on edit type */
-        TRUE,                 /* layer on edit is new */
-};
-
-const PlugInDialogVals default_dialog_vals = {
-        FALSE,        /* dialog has position */
-        0,            /* dialog root position x */
-        0,            /* dialog root position y */
-};
 
 GeglColor *default_pres_col = NULL;
-
 GeglColor *default_disc_col = NULL;
-
 GeglColor *default_rigmask_col = NULL;
-
 GeglColor *default_gray_col = NULL;
 
 /* Initialize default colors */
@@ -137,12 +68,11 @@ initialize_default_colors(void) {
 static PlugInVals vals;
 static PlugInImageVals image_vals;
 static PlugInDrawableVals drawable_vals;
-//static GimpImage *image = NULL;
 static GimpDrawable *drawable = NULL;
 static PlugInUIVals ui_vals;
 static PlugInColVals col_vals;
 static PlugInDialogVals dialog_vals;
-/* Remove old GimpParamDef - replaced by new procedure system */
+
 
 /* Modern GIMP 3.0 plugin class */
 typedef struct _LqrPlugin LqrPlugin;
@@ -159,19 +89,10 @@ struct _LqrPluginClass {
 #define LQR_TYPE_PLUGIN  (lqr_plugin_get_type ())
 #define LQR_PLUGIN(obj)  (G_TYPE_CHECK_INSTANCE_CAST ((obj), LQR_TYPE_PLUGIN, LqrPlugin))
 
-GType lqr_plugin_get_type(void) G_GNUC_CONST;
-
-static GList *lqr_query_procedures(GimpPlugIn *plug_in);
-
-static GimpProcedure *lqr_create_procedure(GimpPlugIn *plug_in,
-                                           const gchar *name);
 
 G_DEFINE_TYPE (LqrPlugin, lqr_plugin, GIMP_TYPE_PLUG_IN)
 
-//GIMP_MAIN (LQR_TYPE_PLUGIN)
-int main(int argc, char *argv[]) {
-    return gimp_main((lqr_plugin_get_type()), argc, argv);
-}
+GIMP_MAIN (LQR_TYPE_PLUGIN)
 
 static void
 lqr_plugin_class_init(LqrPluginClass *klass) {
@@ -195,15 +116,7 @@ lqr_query_procedures(GimpPlugIn *plug_in) {
 static GimpProcedure *
 lqr_create_procedure(GimpPlugIn *plug_in,
                      const gchar *name) {
-//    g_message ("calling lqr_create_procedure for %s", name);
 
-
-    return create_procedure(plug_in, name);
-}
-
-static GimpProcedure *
-create_procedure(GimpPlugIn *plug_in,
-                 const gchar *name) {
     GimpProcedure *procedure = NULL;
 
     g_message ("calling create_proceduresure for %s", name);
@@ -380,13 +293,17 @@ create_procedure(GimpPlugIn *plug_in,
 
 
 static GimpValueArray *
-lqr_run(GimpProcedure *procedure,
+lqr_run(
+        GimpProcedure *procedure,
         GimpRunMode run_mode,
         GimpImage *image,
-//         gint                  n_drawables,
         GimpDrawable **drawables,
         GimpProcedureConfig *config,
-        gpointer run_data) {
+        gpointer run_data
+) {
+    GimpDrawable *drawable;
+
+    gegl_init (NULL, NULL);
 
     GimpPDBStatusType status = GIMP_PDB_SUCCESS;
     gint32 layer_ID;
@@ -444,10 +361,6 @@ lqr_run(GimpProcedure *procedure,
         g_message("Warning: image_ID is not populated");
     }
 
-    if (layer_ID) {
-        g_message ("got here1 layer_ID");
-    }
-
     if (gimp_item_is_channel(GIMP_ITEM(drawable))) {
         gimp_image_unset_active_channel(image);
     }
@@ -476,23 +389,31 @@ lqr_run(GimpProcedure *procedure,
             install_custom_signals();
 
             while (run_dialog == TRUE) {
-                dialog_resp = dialog(&image_vals, &drawable_vals,
+                dialog_resp = dialog(image,
+                                     drawables,
+                                     &image_vals,
+                                     &drawable_vals,
                                      &vals,
                                      &ui_vals,
                                      &col_vals,
                                      &dialog_vals
                 );
                 switch (dialog_resp) {
+
                     case GTK_RESPONSE_OK:
                         run_dialog = FALSE;
                         break;
+
                     case RESPONSE_RESET:
                         vals = default_vals;
                         ui_vals = default_ui_vals;
                         col_vals = default_col_vals;
                         break;
+
                     case RESPONSE_INTERACTIVE:
                         dialog_I_resp = dialog_I(
+                                image,
+                                drawables,
                                 &image_vals,
                                 &drawable_vals,
                                 &vals,
@@ -518,6 +439,8 @@ lqr_run(GimpProcedure *procedure,
                         break;
                     case RESPONSE_WORK_ON_AUX_LAYER:
                         dialog_aux_resp = dialog_aux(
+                                image,
+                                drawables,
                                 &image_vals,
                                 &drawable_vals,
                                 &vals,

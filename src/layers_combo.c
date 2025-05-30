@@ -20,9 +20,10 @@
 
 #include <libgimp/gimp.h>
 #include <libgimp/gimpui.h>
+#include <lqr.h>
+
 #include "altsizeentry.h"
 
-#include <lqr.h>
 
 #include "plugin-intl.h"
 

@@ -20,6 +20,9 @@
 #ifndef __COMBO_H__
 #define __COMBO_H__
 
+
+#include <lqr.h>
+
 typedef enum {
     GUESS_DIR_HOR,
     GUESS_DIR_VERT

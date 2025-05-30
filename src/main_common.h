@@ -15,6 +15,12 @@
 #define VALS_MAX_NAME_LENGTH (1024)
 #define MAX_STRING_SIZE   (2048)
 
+/**
+ * PlugInVals
+ *
+ *
+ *
+ */
 typedef struct
 {
   gint new_width;
@@ -43,24 +49,8 @@ typedef struct
   gchar selected_layer_name[VALS_MAX_NAME_LENGTH];
 } PlugInVals;
 
-/* GIMP 3.0 compatibility helpers */
-//static inline void
-//lqr_image_set_active_layer (GimpImage *image, GimpDrawable *drawable)
-//{
-////  GimpImage *image = gimp_image_get_by_id (image_id);
-////  GimpLayer *layer = gimp_layer_get_by_id (layer_id);
-//  if (image && drawable)
-//    {
-//      const GimpLayer **layers = g_new (const GimpLayer *, 1);
-//      layers[0] = drawable;
-//      gimp_image_set_selected_layers (image, layers);
-//      g_free (layers);
-//    }
-//}
-
 static inline gint32
-gimp_image_get_active_layer_id(gint32 image_id) {
-    GimpImage *image = gimp_image_get_by_id(image_id);
+gimp_image_get_active_layer(GimpImage *image) {
     GList *layers = gimp_image_list_layers(image);
 
     if (layers) {
@@ -69,6 +59,12 @@ gimp_image_get_active_layer_id(gint32 image_id) {
         return layer_id;
     }
     return -1;
+}
+
+static inline gint32
+gimp_image_get_active_layer_id(gint32 image_id) {
+    GimpImage *image = gimp_image_get_by_id(image_id);
+    return gimp_image_get_active_layer(image);
 }
 
 static inline void
@@ -83,12 +79,13 @@ static inline gint32*
 gimp_image_get_layers_id(gint32 image_id, gint *num_layers) {
     GimpImage *image = gimp_image_get_by_id(image_id);
     GList *layers = gimp_image_list_layers(image);
+    GList *iter = layers;
 
     *num_layers = g_list_length(layers);
     gint32 *layer_ids = g_new(gint32, *num_layers);
 
-    for (int i = 0; layers; layers = layers->next, i++) {
-        layer_ids[i] = gimp_item_get_id(GIMP_ITEM(layers->data));
+    for (int i = 0; iter; iter = iter->next, i++) {
+        layer_ids[i] = gimp_item_get_id(GIMP_ITEM(iter->data));
     }
 
     g_list_free(layers);

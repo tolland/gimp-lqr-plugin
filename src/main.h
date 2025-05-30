@@ -3,6 +3,7 @@
 #define __MAIN_H__
 
 #include "main_common.h"
+#include <glib/gi18n.h>
 
 
 /*  Local function prototypes  */
@@ -26,6 +27,13 @@ static void cancel_work_on_aux_layer(void);
 #if defined(G_OS_WIN32)
 static gchar * get_gimp_share_directory_on_windows();
 #endif
+
+GType lqr_plugin_get_type(void) G_GNUC_CONST;
+
+static GList *lqr_query_procedures(GimpPlugIn *plug_in);
+
+static GimpProcedure *lqr_create_procedure(GimpPlugIn *plug_in,
+                                           const gchar *name);
 
 static GimpProcedure *create_procedure(GimpPlugIn *plug_in,
                                        const gchar *name);

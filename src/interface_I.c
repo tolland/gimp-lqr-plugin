@@ -87,12 +87,15 @@ gboolean reader_go = TRUE;
 /***  Public functions  ***/
 
 gint
-dialog_I(PlugInImageVals *image_vals,
-         PlugInDrawableVals *drawable_vals,
-         PlugInVals *vals,
-         PlugInUIVals *ui_vals,
-         PlugInColVals *col_vals,
-         PlugInDialogVals *dialog_vals) {
+dialog_I(
+        GimpImage *image,
+        GimpDrawable **drawables,
+        PlugInImageVals *image_vals,
+        PlugInDrawableVals *drawable_vals,
+        PlugInVals *vals,
+        PlugInUIVals *ui_vals,
+        PlugInColVals *col_vals,
+        PlugInDialogVals *dialog_vals) {
     gint32 image_ID;
     gint32 layer_ID;
     gint orig_width, orig_height;
@@ -360,7 +363,6 @@ dialog_I(PlugInImageVals *image_vals,
 
     flatten_icon =
             gtk_image_new_from_icon_name("edit-undo", GTK_ICON_SIZE_MENU);
-
 
 
     gtk_container_add(GTK_CONTAINER (flatten_button), flatten_icon);

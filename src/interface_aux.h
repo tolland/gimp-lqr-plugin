@@ -11,13 +11,26 @@ typedef struct {
 /*  Public functions  */
 
 gint
-dialog_aux(PlugInImageVals *image_vals,
-           PlugInDrawableVals *drawable_vals,
-           PlugInVals *vals,
-           PlugInUIVals *ui_vals,
-           PlugInColVals *col_vals,
-           PlugInDialogVals *dialog_vals);
+dialog_aux(
+        GimpImage *image,
+        GimpDrawable **drawables,
+        PlugInImageVals *image_vals,
+        PlugInDrawableVals *drawable_vals,
+        PlugInVals *vals,
+        PlugInUIVals *ui_vals,
+        PlugInColVals *col_vals,
+        PlugInDialogVals *dialog_vals);
 
-GeglColor *colour_from_type(gint32 image_ID, AuxLayerType layer_type);
+GeglColor *colour_from_type(
+        gint32 image_ID,
+        AuxLayerType layer_type
+);
+
+/* Callbacks */
+static void callback_dialog_aux_response(
+        GtkWidget *dialog,
+        gint response_id,
+        gpointer data
+);
 
 #endif /* __INTERFACE_AUX_H__ */

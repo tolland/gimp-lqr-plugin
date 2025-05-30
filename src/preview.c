@@ -111,8 +111,11 @@ preview_data_create(gint32 image_ID, gint32 layer_ID, PreviewData *p_data) {
 GtkWidget *
 preview_area_create(PreviewData *p_data) {
     p_data->area = gtk_drawing_area_new();
-    gtk_widget_set_size_request(p_data->area, PREVIEW_MAX_WIDTH,
-                                PREVIEW_MAX_HEIGHT);
+    gtk_widget_set_size_request(
+            p_data->area,
+            PREVIEW_MAX_WIDTH,
+            PREVIEW_MAX_HEIGHT
+    );
     return p_data->area;
 }
 
@@ -171,8 +174,10 @@ preview_build_pixbuf(PreviewData *p_data) {
 }
 
 void
-callback_preview_expose_event(GtkWidget *preview_area,
-                              GdkEventExpose *event, gpointer data) {
+callback_preview_expose_event(
+        GtkWidget *preview_area,
+        GdkEventExpose *event,
+        gpointer data) {
     PreviewData *p_data = PREVIEW_DATA (data);
 
 //    gdk_draw_pixbuf(gtk_widget_get_window(p_data->area), NULL,
@@ -192,6 +197,25 @@ callback_preview_expose_event(GtkWidget *preview_area,
 
     update_info_aux_use_icons(p_data->vals, p_data->ui_vals, p_data->pres_use_image, p_data->disc_use_image,
                               p_data->rigmask_use_image);
+}
+
+gboolean
+callback_preview_draw(
+        GtkWidget *widget,
+        cairo_t *cr,
+        gpointer data
+) {
+    PreviewData *p_data = PREVIEW_DATA(data);
+
+    gdk_cairo_set_source_pixbuf(cr, p_data->pixbuf,
+                                (PREVIEW_MAX_WIDTH - p_data->width) / 2,
+                                (PREVIEW_MAX_HEIGHT - p_data->height) / 2);
+    cairo_paint(cr);
+
+    update_info_aux_use_icons(p_data->vals, p_data->ui_vals, p_data->pres_use_image,
+                              p_data->disc_use_image, p_data->rigmask_use_image);
+
+    return FALSE;
 }
 
 void
