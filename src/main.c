@@ -39,29 +39,29 @@
 #include "defaults.h"
 
 /* Local function prototypes */
-static gint32           layer_from_name                    (gint32 image_ID,
-                                                            gchar *name);
-static void             set_aux_layer_name                 (GimpLayer *layer,
-                                                            gboolean status,
-                                                            gchar *name);
-static void             save_vals                          (void);
-static void             retrieve_vals                      (void);
-static void             retrieve_vals_use_aux_layers_names (gint32 image_ID);
-static void             noninteractive_read_vals           (GimpProcedureConfig *config,
-                                                            GimpImage *image);
-static void             install_custom_signals             (void);
-static void             cancel_work_on_aux_layer           (void);
-static GList           *lqr_query_procedures               (GimpPlugIn *plug_in);
-static GimpProcedure   *lqr_create_procedure               (GimpPlugIn *plug_in,
-                                                            const gchar *name);
-static GimpValueArray  *lqr_run                            (GimpProcedure *procedure,
-                                                            GimpRunMode run_mode,
-                                                            GimpImage *image,
-                                                            GimpDrawable **drawables,
-                                                            GimpProcedureConfig *config,
-                                                            gpointer run_data);
+static gint32 layer_from_name(gint32 image_ID,
+                              gchar *name);
+static void set_aux_layer_name(GimpLayer *layer,
+                               gboolean status,
+                               gchar *name);
+static void save_vals(void);
+static void retrieve_vals(void);
+static void retrieve_vals_use_aux_layers_names(gint32 image_ID);
+static void noninteractive_read_vals(GimpProcedureConfig *config,
+                                     GimpImage *image);
+static void install_custom_signals(void);
+static void cancel_work_on_aux_layer(void);
+static GList *lqr_query_procedures(GimpPlugIn *plug_in);
+static GimpProcedure *lqr_create_procedure(GimpPlugIn *plug_in,
+                                           const gchar *name);
+static GimpValueArray *lqr_run(GimpProcedure *procedure,
+                               GimpRunMode run_mode,
+                               GimpImage *image,
+                               GimpDrawable **drawables,
+                               GimpProcedureConfig *config,
+                               gpointer run_data);
 #if defined(G_OS_WIN32)
-static gchar           *get_gimp_share_directory_on_windows(void);
+static gchar *get_gimp_share_directory_on_windows(void);
 #endif
 
 /*  Local variables  */
@@ -142,8 +142,6 @@ lqr_create_procedure(GimpPlugIn *plug_in,
                      const gchar *name) {
 
     GimpProcedure *procedure = NULL;
-
-    g_message ("calling create_proceduresure for %s", name);
 
     if (g_strcmp0(name, PLUG_IN_NAME) == 0) {
         procedure = gimp_image_procedure_new(plug_in, name,
@@ -340,8 +338,6 @@ lqr_run(
     gint dialog_aux_resp;
     gboolean render_success = FALSE;
 
-    g_message ("got here1");
-
     /*  Initialize i18n support  */
 #if defined(G_OS_WIN32)
     bindtextdomain (GETTEXT_PACKAGE, gimp_locale_directory());
@@ -355,9 +351,6 @@ lqr_run(
 
     /* Initialize default colors */
     initialize_default_colors();
-
-
-    g_message ("got here1 initialize_default_colors");
 
 
     /*  Initialize with default values  */
@@ -396,7 +389,6 @@ lqr_run(
         g_free(selected_layers);
     }
 
-    g_message ("got here");
 
     image_vals.image_ID = image_ID;
     drawable_vals.layer_ID = layer_ID;
