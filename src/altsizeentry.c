@@ -260,6 +260,8 @@ alt_size_entry_new(gint number_of_fields,
 
         gsef->value_spinbutton = gimp_spin_button_new(gsef->value_adjustment,
                                                       1.0, digits);
+        gsef->value_adjustment =
+                gtk_spin_button_get_adjustment(GTK_SPIN_BUTTON(gsef->value_spinbutton));
 
         if (spinbutton_width > 0) {
             if (spinbutton_width < 17)
@@ -282,6 +284,8 @@ alt_size_entry_new(gint number_of_fields,
             gsef->refval_spinbutton =
                     gimp_spin_button_new(gsef->refval_adjustment,
                                          1.0, gsef->refval_digits);
+            gsef->refval_adjustment =
+                    gtk_spin_button_get_adjustment(GTK_SPIN_BUTTON(gsef->refval_spinbutton));
 
             gtk_widget_set_size_request(gsef->refval_spinbutton,
                                         spinbutton_width, -1);
@@ -326,7 +330,7 @@ alt_size_entry_new(gint number_of_fields,
                     0, gse->show_refval + 2, 2, 1);
     /** CUSTOMIZATION END **/
 
-    g_signal_connect (gse->unitmenu, "unit-changed",
+    g_signal_connect (gse->unitmenu, "changed",
                       G_CALLBACK(alt_size_entry_unit_callback),
                       gse);
     gtk_widget_show(gse->unitmenu);

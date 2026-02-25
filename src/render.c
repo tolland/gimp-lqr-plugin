@@ -325,7 +325,7 @@ render_noninteractive(PlugInVals *vals,
         gimp_image_resize_id(image_ID, new_width, new_height, -x_off, -y_off);
         gimp_layer_resize_to_image_size_id(layer_ID);
     } else {
-        gimp_image_resize_id(layer_ID, new_width, new_height, 0, 0);
+        gimp_layer_resize_id(layer_ID, new_width, new_height, 0, 0);
     }
 
 #ifdef __CLOCK_IT__
@@ -372,7 +372,7 @@ render_noninteractive(PlugInVals *vals,
                 }
 
                 if (vals->resize_canvas == TRUE) {
-                    gimp_layer_resize_id(image_ID, sb_width, sb_height, 0, 0);
+                    gimp_layer_resize_id(layer_ID, sb_width, sb_height, 0, 0);
                     gimp_layer_scale_id(layer_ID, sb_width, sb_height, FALSE);
                 } else {
                     scale_layer_translated(layer_ID, sb_width, sb_height, x_off, y_off);
@@ -487,7 +487,7 @@ render_interactive(PlugInVals *vals,
         gimp_image_resize_id(image_ID, new_width, new_height, -x_off, -y_off);
         gimp_layer_resize_to_image_size_id(layer_ID);
     } else {
-        gimp_image_resize_id(layer_ID, new_width, new_height, 0, 0);
+        gimp_layer_resize_id(layer_ID, new_width, new_height, 0, 0);
     }
 
 #ifdef __CLOCK_IT__
@@ -587,7 +587,7 @@ render_flatten(PlugInVals *vals,
         gimp_image_resize_id(image_ID, old_width, old_height, -x_off, -y_off);
         gimp_layer_resize_to_image_size_id(layer_ID);
     } else {
-        gimp_image_resize_id(layer_ID, old_width, old_height, 0, 0);
+        gimp_layer_resize_id(layer_ID, old_width, old_height, 0, 0);
     }
 
 #ifdef __CLOCK_IT__
@@ -798,8 +798,8 @@ resize_unlock_aux_layer(gint32 layer_ID, gint width, gint height, gint x_off, gi
         alpha_lock = gimp_layer_get_lock_alpha_id(layer_ID);
         gimp_layer_set_lock_alpha_id(layer_ID, FALSE);
         gimp_drawable_get_offsets_id(layer_ID, &aux_x_off, &aux_y_off);
-        gimp_image_resize_id(layer_ID, width, height,
-                          aux_x_off - x_off, aux_y_off - y_off);
+        gimp_layer_resize_id(layer_ID, width, height,
+                             aux_x_off - x_off, aux_y_off - y_off);
     }
     return alpha_lock;
 }
@@ -830,7 +830,7 @@ write_aux_carver(LqrCarverList **carver_list_p, gint32 layer_ID, gint width, gin
     if (!layer_ID) {
         return TRUE;
     }
-    gimp_image_resize_id(layer_ID, width, height, 0, 0);
+    gimp_layer_resize_id(layer_ID, width, height, 0, 0);
     aux_carver = lqr_carver_list_current(carver_list);
     MEM_CHECK1 (write_carver_to_layer(aux_carver, layer_ID));
     *carver_list_p = lqr_carver_list_next(carver_list);

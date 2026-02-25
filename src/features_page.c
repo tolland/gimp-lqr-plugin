@@ -57,10 +57,9 @@ features_page_new(gint32 image_ID, gint32 layer_ID) {
     GtkWidget *guess_label;
     GtkWidget *guess_button_hor;
     GtkWidget *guess_button_ver;
-//    GtkWidget *table;
-    gint row;
     GtkWidget *combo;
-    GtkAdjustment *adj;
+    GtkWidget *pres_layer_label;
+    GtkWidget *disc_layer_label;
 
     label = gtk_label_new(_("Feature masks"));
     notebook_data->label = label;
@@ -76,7 +75,7 @@ features_page_new(gint32 image_ID, gint32 layer_ID) {
     g_snprintf(new_pres_layer_data->name, LQR_MAX_NAME_LENGTH, _("%s pres mask"),
                gimp_item_get_name(gimp_item_get_by_id(preview_data.orig_layer_ID)));
 
-    //gimp_rgb_set(&(new_pres_layer_data->colour), 0, 1, 0);
+    new_pres_layer_data->colour = gegl_color_new("black");
     gegl_color_set_rgba(new_pres_layer_data->colour, 0.0, 1.0, 0.0, 1.0);
     new_pres_layer_data->layer_type = AUX_LAYER_PRES;
 
@@ -87,7 +86,7 @@ features_page_new(gint32 image_ID, gint32 layer_ID) {
     /* (here "%s" represents the selected layer's name) */
     g_snprintf(new_disc_layer_data->name, LQR_MAX_NAME_LENGTH, _("%s disc mask"),
                gimp_item_get_name(gimp_item_get_by_id(preview_data.orig_layer_ID)));
-//    gimp_rgb_set(&(new_disc_layer_data->colour), 1, 0, 0);
+    new_disc_layer_data->colour = gegl_color_new("black");
     gegl_color_set_rgba(new_disc_layer_data->colour, 1.0, 0.0, 0.0, 1.0);
     new_disc_layer_data->layer_type = AUX_LAYER_DISC;
 
@@ -252,37 +251,17 @@ features_page_new(gint32 image_ID, gint32 layer_ID) {
                                 NULL);
     }
 
-//    table = gtk_table_new(1, 2, FALSE);
-//
-//    gtk_container_set_border_width(GTK_CONTAINER (table), 4);
-//
-//    gtk_table_set_col_spacings(GTK_TABLE (table), 4);
-//    gtk_table_set_row_spacings(GTK_TABLE (table), 2);
-//
-//    gtk_container_add(GTK_CONTAINER (pres_combo_event_box), table);
-//    gtk_widget_show(table);
-
-    GtkWidget *grid = gtk_grid_new();
-    gtk_widget_set_margin_start(grid, 4);
-    gtk_widget_set_margin_end(grid, 4);
-    gtk_widget_set_margin_top(grid, 4);
-    gtk_widget_set_margin_bottom(grid, 4);
-    gtk_grid_set_column_spacing(GTK_GRID(grid), 4);
-    gtk_grid_set_row_spacing(GTK_GRID(grid), 2);
-    gtk_box_pack_start(GTK_BOX(pres_vbox2), grid, FALSE, FALSE, 0);
-    gtk_widget_show(grid);
-
-    row = 0;
-
-//    combo =
-//            gimp_layer_combo_box_new(dialog_layer_constraint_func,
-//                                     (gpointer) (&layer_ID),
-//                                     NULL);
+    GtkWidget *pres_combo_grid = gtk_grid_new();
+    gtk_container_set_border_width(GTK_CONTAINER (pres_combo_grid), 4);
+    gtk_grid_set_column_spacing(GTK_GRID (pres_combo_grid), 4);
+    gtk_grid_set_row_spacing(GTK_GRID (pres_combo_grid), 2);
+    gtk_container_add(GTK_CONTAINER (pres_combo_event_box), pres_combo_grid);
+    gtk_widget_show(pres_combo_grid);
 
     GimpLayer *layer = GIMP_LAYER(gimp_item_get_by_id(layer_ID));
 
     combo = gimp_layer_combo_box_new(dialog_layer_constraint_func,
-                                     layer,  // Pass the GimpLayer* directly
+                                     layer,
                                      NULL);
 
     g_object_set(combo, "ellipsize", PANGO_ELLIPSIZE_START, NULL);
@@ -297,22 +276,14 @@ features_page_new(gint32 image_ID, gint32 layer_ID) {
 
     gimp_int_combo_box_set_active(GIMP_INT_COMBO_BOX(combo), old_layer_ID);
 
-//    label = gimp_table_attach_aligned(GTK_TABLE (table), 0, row++,
-//                                      _("Layer:"), 0.0, 0.5, combo, 1, FALSE);
+    pres_layer_label = gtk_label_new(_("Layer:"));
+    gtk_widget_set_halign(pres_layer_label, GTK_ALIGN_START);
+    gtk_widget_set_valign(pres_layer_label, GTK_ALIGN_CENTER);
+    gtk_grid_attach(GTK_GRID(pres_combo_grid), pres_layer_label, 0, 0, 1, 1);
+    gtk_grid_attach(GTK_GRID(pres_combo_grid), combo, 1, 0, 1, 1);
+    gtk_widget_show(pres_layer_label);
 
-//    gimp_int_combo_box_set_active (GIMP_INT_COMBO_BOX (combo), old_layer_ID);
-//
-//    label = gimp_table_attach_aligned (GTK_TABLE (table), 0, row++,
-//                                       _("Layer:"), 0.0, 0.5, combo, 1, FALSE);
-
-    label = gtk_label_new(_("Layer:"));
-    gtk_widget_set_halign(label, GTK_ALIGN_START);
-    gtk_widget_set_valign(label, GTK_ALIGN_CENTER);
-
-// Attach to grid
-    gtk_grid_attach(GTK_GRID(grid), label, 0, row, 1, 1);
-
-    gtk_widget_set_sensitive(label, ui_state->pres_status
+    gtk_widget_set_sensitive(pres_layer_label, ui_state->pres_status
                                     && features_are_sensitive);
 
     gtk_widget_set_sensitive(combo, ui_state->pres_status
@@ -322,28 +293,11 @@ features_page_new(gint32 image_ID, gint32 layer_ID) {
                                                && features_are_sensitive);
 
     pres_toggle_data.combo = combo;
-    pres_toggle_data.combo_label = label;
+    pres_toggle_data.combo_label = pres_layer_label;
     pres_toggle_data.edit_button = pres_edit_button;
     preview_data.pres_combo = combo;
 
     gtk_widget_show(combo);
-
-//    table = gtk_table_new(1, 2, FALSE);
-//    gtk_container_set_border_width(GTK_CONTAINER (table), 4);
-//    gtk_table_set_col_spacings(GTK_TABLE (table), 4);
-//    gtk_table_set_row_spacings(GTK_TABLE (table), 2);
-//    gtk_box_pack_start(GTK_BOX (pres_vbox2), table, FALSE, FALSE, 0);
-//    gtk_widget_show(table);
-
-    //GtkWidget *grid = gtk_grid_new();
-    gtk_widget_set_margin_start(grid, 4);
-    gtk_widget_set_margin_end(grid, 4);
-    gtk_widget_set_margin_top(grid, 4);
-    gtk_widget_set_margin_bottom(grid, 4);
-    gtk_grid_set_column_spacing(GTK_GRID(grid), 4);
-    gtk_grid_set_row_spacing(GTK_GRID(grid), 2);
-    gtk_box_pack_start(GTK_BOX(pres_vbox2), grid, FALSE, FALSE, 0);
-    gtk_widget_show(grid);
 
     if (features_are_sensitive) {
         g_snprintf(pres_strength_tip_string_, MAX_STRING_SIZE,
@@ -354,41 +308,30 @@ features_page_new(gint32 image_ID, gint32 layer_ID) {
         pres_strength_tip_string = NULL;
     }
 
-//    adj = gimp_scale_entry_new(GTK_TABLE (table), 0, row++,
-//                               _("Strength:"), SCALE_WIDTH, SPIN_BUTTON_WIDTH,
-//                               state->pres_coeff, 0, MAX_COEFF, 1, 10, 0,
-//                               TRUE, 0, 0,
-//                               pres_strength_tip_string,
-//                               NULL);
-//
-//    ScaleEntry *adj = create_scale_entry(GTK_GRID(grid), row++, _("Strength:"),
-//                                         state->pres_coeff, 0, MAX_COEFF);
+    GtkWidget *pres_coeff_scale_entry;
+    GtkWidget *pres_coeff_spin_button;
+    GtkAdjustment *pres_coeff_adj;
 
-    GtkWidget *table = gtk_grid_new();
-    gtk_container_set_border_width(GTK_CONTAINER (table), 4);
-    gtk_grid_set_column_spacing(GTK_GRID (table), 4);
-    gtk_grid_set_row_spacing(GTK_GRID (table), 2);
-    gtk_box_pack_start(GTK_BOX (pres_vbox2), table, FALSE, FALSE, 0);
-    gtk_widget_show(table);
+    pres_coeff_scale_entry = gimp_scale_entry_new(_("Strength:"),
+                                                  state->pres_coeff,
+                                                  0,
+                                                  MAX_COEFF,
+                                                  0);
+    pres_coeff_spin_button =
+            gimp_label_spin_get_spin_button(GIMP_LABEL_SPIN(pres_coeff_scale_entry));
+    pres_coeff_adj =
+            gtk_spin_button_get_adjustment(GTK_SPIN_BUTTON(pres_coeff_spin_button));
 
-    row = 0;
+    gtk_widget_set_tooltip_text(pres_coeff_scale_entry, pres_strength_tip_string);
+    gtk_box_pack_start(GTK_BOX (pres_vbox2), pres_coeff_scale_entry, FALSE, FALSE, 0);
+    gtk_widget_show(pres_coeff_scale_entry);
 
-    GtkWidget *something;
-    something = gimp_scale_entry_new(_("Max enlargement per step:"),
-                                     state->pres_coeff,
-                                     0,
-                                     MAX_COEFF,
-                                     0
-    );
+    g_signal_connect (pres_coeff_adj, "value_changed",
+                      G_CALLBACK(gimp_int_adjustment_update),
+                      (gpointer) &(state->pres_coeff));
 
-    g_signal_connect (something, "value_changed",
-                      G_CALLBACK(gimp_float_adjustment_update),
-                      &state->enl_step);
-
-
-
-
-//    pres_toggle_data.scale = adj;
+    gtk_widget_set_sensitive(pres_coeff_scale_entry,
+                             (ui_state->pres_status && features_are_sensitive));
 
     pres_toggle_data.status = &(ui_state->pres_status);
 
@@ -555,25 +498,12 @@ features_page_new(gint32 image_ID, gint32 layer_ID) {
                                   "to update the list"), NULL);
     }
 
-//    table = gtk_table_new(1, 2, FALSE);
-//    gtk_container_set_border_width(GTK_CONTAINER (table), 4);
-//    gtk_table_set_col_spacings(GTK_TABLE (table), 4);
-//    gtk_table_set_row_spacings(GTK_TABLE (table), 2);
-//    gtk_container_add(GTK_CONTAINER (disc_combo_event_box), table);
-//    gtk_widget_show(table);
-
-//    GtkWidget *grid = gtk_grid_new();
-    gtk_widget_set_margin_start(grid, 4);
-    gtk_widget_set_margin_end(grid, 4);
-    gtk_widget_set_margin_top(grid, 4);
-    gtk_widget_set_margin_bottom(grid, 4);
-    gtk_grid_set_column_spacing(GTK_GRID(grid), 4);
-    gtk_grid_set_row_spacing(GTK_GRID(grid), 2);
-    // @TODO does this make sense?
-    gtk_box_pack_start(GTK_BOX(disc_combo_event_box), grid, FALSE, FALSE, 0);
-    gtk_widget_show(grid);
-
-    row = 0;
+    GtkWidget *disc_combo_grid = gtk_grid_new();
+    gtk_container_set_border_width(GTK_CONTAINER (disc_combo_grid), 4);
+    gtk_grid_set_column_spacing(GTK_GRID (disc_combo_grid), 4);
+    gtk_grid_set_row_spacing(GTK_GRID (disc_combo_grid), 2);
+    gtk_container_add(GTK_CONTAINER (disc_combo_event_box), disc_combo_grid);
+    gtk_widget_show(disc_combo_grid);
 
     combo =
             gimp_layer_combo_box_new(dialog_layer_constraint_func,
@@ -592,66 +522,28 @@ features_page_new(gint32 image_ID, gint32 layer_ID) {
 
     gimp_int_combo_box_set_active(GIMP_INT_COMBO_BOX(combo), old_layer_ID);
 
-    /*
-     * GtkWidget *
-gimp_table_attach_aligned (GtkTable *table,
-                           gint column,
-                           gint row,
-                           const gchar *label_text,
-                           gfloat xalign,
-                           gfloat yalign,
-                           GtkWidget *widget,
-                           gint colspan,
-                           gboolean left_align);
-     */
-//    label = gimp_table_attach_aligned(GTK_TABLE (table),
-//                                      0,
-//                                      row++,
-//                                      _("Layer:"),
-//                                      0.0,
-//                                      0.5,
-//                                      combo,
-//                                      1,
-//                                      FALSE);
-
-    /*
-     * gtk_grid_attach(_GtkGrid *grid, _GtkWidget *child, gint left, gint top, gint width, gint height)
-     */
-    gtk_grid_attach(GTK_GRID(grid), combo, 0, row, 1, 1);
-
+    disc_layer_label = gtk_label_new(_("Layer:"));
+    gtk_widget_set_halign(disc_layer_label, GTK_ALIGN_START);
+    gtk_widget_set_valign(disc_layer_label, GTK_ALIGN_CENTER);
+    gtk_grid_attach(GTK_GRID(disc_combo_grid), disc_layer_label, 0, 0, 1, 1);
+    gtk_grid_attach(GTK_GRID(disc_combo_grid), combo, 1, 0, 1, 1);
+    gtk_widget_show(disc_layer_label);
 
     gtk_widget_set_sensitive(combo, ui_state->disc_status
                                     && features_are_sensitive);
 
-    gtk_widget_set_sensitive(label, ui_state->disc_status
+    gtk_widget_set_sensitive(disc_layer_label, ui_state->disc_status
                                     && features_are_sensitive);
 
     gtk_widget_set_sensitive(disc_edit_button, ui_state->disc_status
                                                && features_are_sensitive);
 
     disc_toggle_data.combo = combo;
-    disc_toggle_data.combo_label = label;
+    disc_toggle_data.combo_label = disc_layer_label;
     disc_toggle_data.edit_button = disc_edit_button;
     preview_data.disc_combo = combo;
 
     gtk_widget_show(combo);
-
-//    table = gtk_table_new(1, 2, FALSE);
-//    gtk_container_set_border_width(GTK_CONTAINER (table), 4);
-//    gtk_table_set_col_spacings(GTK_TABLE (table), 4);
-//    gtk_table_set_row_spacings(GTK_TABLE (table), 2);
-//    gtk_box_pack_start(GTK_BOX (disc_vbox2), table, FALSE, FALSE, 0);
-//    gtk_widget_show(table);
-
-//    GtkWidget *grid = gtk_grid_new();
-    gtk_widget_set_margin_start(grid, 4);
-    gtk_widget_set_margin_end(grid, 4);
-    gtk_widget_set_margin_top(grid, 4);
-    gtk_widget_set_margin_bottom(grid, 4);
-    gtk_grid_set_column_spacing(GTK_GRID(grid), 4);
-    gtk_grid_set_row_spacing(GTK_GRID(grid), 2);
-    gtk_box_pack_start(GTK_BOX(disc_vbox2), grid, FALSE, FALSE, 0);
-    gtk_widget_show(grid);
 
     if (features_are_sensitive) {
         g_snprintf(disc_strength_tip_string_, MAX_STRING_SIZE,
@@ -662,39 +554,6 @@ gimp_table_attach_aligned (GtkTable *table,
         disc_strength_tip_string = NULL;
     }
 
-/*    GtkObject *
-    gimp_scale_entry_new (GtkTable *table,
-                          gint column,
-                          gint row,
-                          const gchar *text,
-                          gint scale_width,
-                          gint spinbutton_width,
-                          gdouble value,
-                          gdouble lower,
-                          gdouble upper,
-                          gdouble step_increment,
-                          gdouble page_increment,
-                          guint digits,
-                          gboolean constrain,
-                          gdouble unconstrained_lower,
-                          gdouble unconstrained_upper,
-                          const gchar *tooltip,
-                          const gchar *help_id);*/
-//    adj = gimp_scale_entry_new(GTK_TABLE (table), 0, 0,
-//                               _("Strength:"),
-//                               SCALE_WIDTH,
-//                               SPIN_BUTTON_WIDTH,
-//                               state->disc_coeff,
-//                               0,
-//                               MAX_COEFF,
-//                               1,
-//                               10,
-//                               0,
-//                               TRUE, 0, 0,
-//                               disc_strength_tip_string,
-//                               NULL);
-
-// GIMP 3.x - New way using GimpScaleEntry with GtkGrid
     GtkWidget *disc_coeff_scale_entry;
     GtkAdjustment *disc_coeff_adj;
 
@@ -711,6 +570,8 @@ gimp_table_attach_aligned (GtkTable *table,
 
 // Set tooltip if needed
     gtk_widget_set_tooltip_text(disc_coeff_scale_entry, disc_strength_tip_string);
+    gtk_box_pack_start(GTK_BOX (disc_vbox2), disc_coeff_scale_entry, FALSE, FALSE, 0);
+    gtk_widget_show(disc_coeff_scale_entry);
 
     g_signal_connect (disc_coeff_adj, "value_changed",
                       G_CALLBACK(gimp_int_adjustment_update),
@@ -720,21 +581,9 @@ gimp_table_attach_aligned (GtkTable *table,
                       (gpointer) &preview_data);
 
 
-//    gtk_widget_set_sensitive(GIMP_SCALE_ENTRY_LABEL(adj),
-//                             (ui_state->disc_status
-//                              && features_are_sensitive));
-//    gtk_widget_set_sensitive(GIMP_SCALE_ENTRY_SCALE(adj),
-//                             (ui_state->disc_status
-//                              && features_are_sensitive));
-//    gtk_widget_set_sensitive(GIMP_SCALE_ENTRY_SPINBUTTON(adj),
-//                             (ui_state->disc_status
-//                              && features_are_sensitive));
-
     gtk_widget_set_sensitive(disc_coeff_scale_entry,
                              (ui_state->disc_status
                               && features_are_sensitive));
-
-//    disc_toggle_data.scale = disc_coeff_adj;
 
     disc_toggle_data.status = &(ui_state->disc_status);
 

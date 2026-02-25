@@ -161,12 +161,12 @@ alt_coordinates_new(GimpUnit *unit,
     GtkWidget *spinbutton;
     GtkWidget *sizeentry;
     GtkWidget *chainbutton;
+    GtkWidget *grid;
 
     adjustment = gtk_adjustment_new(1, 0, 1, 1, 10, 0); // value, lower, upper, step, page, page_size
     spinbutton = gimp_spin_button_new(adjustment, 1, 2); // climb_rate, digits
 
 //  spinbutton = gimp_spin_button_new (&adjustment, 1, 0, 1, 1, 10, 0, 1, 2);
-    spinbutton = gimp_spin_button_new(adjustment, 1, 2);
 
     if (spinbutton_width > 0) {
         if (spinbutton_width < 17)
@@ -181,11 +181,12 @@ alt_coordinates_new(GimpUnit *unit,
                                    FALSE,
                                    spinbutton_width,
                                    update_policy);
-    gtk_table_set_col_spacing(GTK_TABLE (sizeentry), 0, 4);
-    gtk_table_set_col_spacing(GTK_TABLE (sizeentry), 2, 4);
+    grid = GTK_WIDGET(sizeentry);
+    gtk_grid_set_column_spacing(GTK_GRID(grid), 4);
+    gtk_grid_set_row_spacing(GTK_GRID(grid), 2);
     alt_size_entry_add_field(ALT_SIZE_ENTRY (sizeentry),
                              GTK_SPIN_BUTTON (spinbutton), NULL);
-    gtk_table_attach_defaults(GTK_TABLE (sizeentry), spinbutton, 1, 2, 0, 1);
+    gtk_grid_attach(GTK_GRID(grid), spinbutton, 1, 0, 1, 1);
     gtk_widget_show(spinbutton);
 
     alt_size_entry_set_unit(ALT_SIZE_ENTRY (sizeentry),
@@ -220,8 +221,7 @@ alt_coordinates_new(GimpUnit *unit,
     if (chainbutton_active)
         gimp_chain_button_set_active(GIMP_CHAIN_BUTTON(chainbutton), TRUE);
 
-    gtk_table_attach(GTK_TABLE (sizeentry), chainbutton, 2, 3, 0, 2,
-                     GTK_SHRINK | GTK_FILL, GTK_EXPAND | GTK_FILL, 0, 0);
+    gtk_grid_attach(GTK_GRID(grid), chainbutton, 2, 0, 1, 2);
     gtk_widget_show(chainbutton);
 
     data = g_slice_new (AltCoordinatesData);
@@ -249,4 +249,3 @@ alt_coordinates_new(GimpUnit *unit,
 
     return sizeentry;
 }
-

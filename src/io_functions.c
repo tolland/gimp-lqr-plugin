@@ -137,7 +137,6 @@ write_carver_to_layer(LqrCarver *r, gint32 layer_ID) {
     }
 
     gegl_buffer_flush(buffer_out);
-    gimp_drawable_merge_shadow(GIMP_DRAWABLE(gimp_drawable_get_by_id(layer_ID)), TRUE);
     gimp_drawable_update(GIMP_DRAWABLE(gimp_drawable_get_by_id(layer_ID)), 0, 0, w, h);
 
     g_object_unref(buffer_out);
@@ -234,7 +233,6 @@ write_vmap_to_layer(LqrVMap *vmap, gpointer data) {
     }
 
     gegl_buffer_flush(buffer_out);
-    gimp_drawable_merge_shadow(GIMP_DRAWABLE(gimp_drawable_get_by_id(seam_layer_ID)), TRUE);
     gimp_drawable_update(GIMP_DRAWABLE(gimp_drawable_get_by_id(seam_layer_ID)), 0, 0, w, h);
     gimp_item_set_visible(GIMP_ITEM(gimp_drawable_get_by_id(seam_layer_ID)), TRUE);
     g_object_unref(buffer_out);
