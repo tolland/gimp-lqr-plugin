@@ -705,7 +705,9 @@ gimp_table_attach_aligned (GtkTable *table,
                                                   MAX_COEFF,         // upper bound
                                                   0);                // digits
 
-    //adj = gimp_scale_entry_get_adjustment(GIMP_SCALE_ENTRY(scale_entry));
+    GtkWidget *disc_coeff_spin_button =
+            gimp_label_spin_get_spin_button(GIMP_LABEL_SPIN(disc_coeff_scale_entry));
+    disc_coeff_adj = gtk_spin_button_get_adjustment(GTK_SPIN_BUTTON(disc_coeff_spin_button));
 
 // Set tooltip if needed
     gtk_widget_set_tooltip_text(disc_coeff_scale_entry, disc_strength_tip_string);

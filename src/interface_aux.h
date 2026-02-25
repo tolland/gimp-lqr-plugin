@@ -26,11 +26,4 @@ GeglColor *colour_from_type(
         AuxLayerType layer_type
 );
 
-/* Callbacks */
-static void callback_dialog_aux_response(
-        GtkWidget *dialog,
-        gint response_id,
-        gpointer data
-);
-
 #endif /* __INTERFACE_AUX_H__ */

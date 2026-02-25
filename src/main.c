@@ -23,10 +23,8 @@
 #include <string.h>
 
 #include <glib.h>
-#include <glib/gi18n.h>
 #include <libgimp/gimp.h>
 #include <libgimp/gimpui.h>
-#include <libgimp/gimp.h>
 #include <glib-object.h>
 #include <lqr.h>
 
@@ -39,6 +37,32 @@
 #include "interface_I.h"
 #include "interface_aux.h"
 #include "defaults.h"
+
+/* Local function prototypes */
+static gint32           layer_from_name                    (gint32 image_ID,
+                                                            gchar *name);
+static void             set_aux_layer_name                 (GimpLayer *layer,
+                                                            gboolean status,
+                                                            gchar *name);
+static void             save_vals                          (void);
+static void             retrieve_vals                      (void);
+static void             retrieve_vals_use_aux_layers_names (gint32 image_ID);
+static void             noninteractive_read_vals           (GimpProcedureConfig *config,
+                                                            GimpImage *image);
+static void             install_custom_signals             (void);
+static void             cancel_work_on_aux_layer           (void);
+static GList           *lqr_query_procedures               (GimpPlugIn *plug_in);
+static GimpProcedure   *lqr_create_procedure               (GimpPlugIn *plug_in,
+                                                            const gchar *name);
+static GimpValueArray  *lqr_run                            (GimpProcedure *procedure,
+                                                            GimpRunMode run_mode,
+                                                            GimpImage *image,
+                                                            GimpDrawable **drawables,
+                                                            GimpProcedureConfig *config,
+                                                            gpointer run_data);
+#if defined(G_OS_WIN32)
+static gchar           *get_gimp_share_directory_on_windows(void);
+#endif
 
 /*  Local variables  */
 
@@ -366,9 +390,8 @@ lqr_run(
     }
     if (!gimp_item_is_layer(GIMP_ITEM(drawable))) {
         GimpLayer **selected_layers;
-        gint n_selected_layers;
         selected_layers = gimp_image_get_selected_layers(image);
-        if (selected_layers && n_selected_layers > 0)
+        if (selected_layers && selected_layers[0] != NULL)
             layer_ID = gimp_item_get_id(GIMP_ITEM(selected_layers[0]));
         g_free(selected_layers);
     }

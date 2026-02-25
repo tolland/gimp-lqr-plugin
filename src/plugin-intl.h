@@ -3,15 +3,20 @@
 #ifndef __PLUGIN_INTL_H__
 #define __PLUGIN_INTL_H__
 
-#ifdef HAVE_CONFIG_H
-#  include "config.h"
-#endif
+#include "config.h"
 
 #ifndef GETTEXT_PACKAGE
 #error "GETTEXT_PACKAGE must be defined (config.h should define it)"
 #endif
 
 #include <libintl.h>
+
+#ifdef _
+#undef _
+#endif
+#ifdef Q_
+#undef Q_
+#endif
 
 /* Use dgettext to specify the translation domain explicitly */
 #define _(String) dgettext (GETTEXT_PACKAGE, String)

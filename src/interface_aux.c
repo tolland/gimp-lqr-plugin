@@ -66,6 +66,8 @@ extern GeglColor *default_rigmask_col;
 extern GeglColor *default_gray_col;
 
 /***  Local functions declariations  ***/
+static void
+callback_dialog_aux_response(GtkWidget *dialog, gint response_id, gpointer data);
 
 
 
