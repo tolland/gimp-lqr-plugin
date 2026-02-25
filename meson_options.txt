@@ -1,11 +1,11 @@
-option('gimp_libdir',
+option('gimp_plugindir',
   type : 'string',
   value : '',
-  description : 'GIMP lib directory'
+  description : 'Override plugin installation directory'
 )
 
-option('default_prefix',
+option('gimp_plugin_datadir',
   type : 'string',
-  value : '~/.config/GIMP/3.0',
-  description : 'Default installation prefix'
-) 
+  value : '',
+  description : 'Override plugin data installation directory'
+)
