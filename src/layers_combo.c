@@ -152,15 +152,18 @@ callback_combo_set_sensitive(GtkWidget *button, gpointer data) {
         /*
          * extern void gtk_widget_set_sensitive(_GtkWidget *widget, gboolean sensitive)
          */
-//        gtk_widget_set_sensitive(GIMP_SCALE_ENTRY_LABEL
-//                                         (t_data->scale), button_status);
+        // gtk_widget_set_sensitive(GIMP_SCALE_ENTRY_LABEL
+        //                                  (t_data->scale), button_status);
 //        gtk_widget_set_sensitive(GIMP_SCALE_ENTRY_SCALE
 //                                         (t_data->scale), button_status);
 //        gtk_widget_set_sensitive(GIMP_SCALE_ENTRY_SPINBUTTON
 //                                         (t_data->scale), button_status);
 
-        gtk_widget_set_sensitive(button,
+        gtk_widget_set_sensitive(t_data->scale,
                                  button_status);
+        // @TODO what was this doing?
+        // gtk_widget_set_sensitive(button,
+        //                          button_status);
 
     }
     if (t_data->guess_label) {

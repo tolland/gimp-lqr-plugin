@@ -163,7 +163,7 @@ advanced_page_new(gint32 image_ID, gint32 layer_ID) {
                                                           0                // digits
     );
 
-    g_signal_connect (scale_entry_max_traversal_step, "value_changed",
+    g_signal_connect (scale_entry_max_traversal_step, "value-changed",
                       G_CALLBACK(gimp_int_adjustment_update), &state->delta_x);
 
     /* Rigidity */
@@ -199,7 +199,7 @@ advanced_page_new(gint32 image_ID, gint32 layer_ID) {
                                                         0                // digits
     );
 
-    g_signal_connect (scale_entry_overall_rigidity, "value_changed",
+    g_signal_connect (scale_entry_overall_rigidity, "value-changed",
                       G_CALLBACK(gimp_float_adjustment_update),
                       &state->rigidity);
 
@@ -491,7 +491,7 @@ advanced_page_new(gint32 image_ID, gint32 layer_ID) {
     gtk_widget_set_tooltip_text(scale_entry_max_enlargement,
                                 _("When enlarging beyond the value set here the rescaling will be performed in multiple steps."));
 
-    g_signal_connect (adj_max_enlargement, "value_changed",
+    g_signal_connect (adj_max_enlargement, "value-changed",
                       G_CALLBACK(gimp_float_adjustment_update),
                       &state->enl_step);
 

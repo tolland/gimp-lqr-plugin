@@ -326,7 +326,7 @@ features_page_new(gint32 image_ID, gint32 layer_ID) {
     gtk_box_pack_start(GTK_BOX (pres_vbox2), pres_coeff_scale_entry, FALSE, FALSE, 0);
     gtk_widget_show(pres_coeff_scale_entry);
 
-    g_signal_connect (pres_coeff_adj, "value_changed",
+    g_signal_connect (pres_coeff_adj, "value-changed",
                       G_CALLBACK(gimp_int_adjustment_update),
                       (gpointer) &(state->pres_coeff));
 
@@ -334,6 +334,7 @@ features_page_new(gint32 image_ID, gint32 layer_ID) {
                              (ui_state->pres_status && features_are_sensitive));
 
     pres_toggle_data.status = &(ui_state->pres_status);
+    pres_toggle_data.scale = pres_coeff_scale_entry;
 
     g_signal_connect (G_OBJECT(pres_button), "toggled",
                       G_CALLBACK(callback_combo_set_sensitive),
@@ -573,10 +574,10 @@ features_page_new(gint32 image_ID, gint32 layer_ID) {
     gtk_box_pack_start(GTK_BOX (disc_vbox2), disc_coeff_scale_entry, FALSE, FALSE, 0);
     gtk_widget_show(disc_coeff_scale_entry);
 
-    g_signal_connect (disc_coeff_adj, "value_changed",
+    g_signal_connect (disc_coeff_adj, "value-changed",
                       G_CALLBACK(gimp_int_adjustment_update),
                       (gpointer) &(state->disc_coeff));
-    g_signal_connect (disc_coeff_adj, "value_changed",
+    g_signal_connect (disc_coeff_adj, "value-changed",
                       G_CALLBACK(callback_set_disc_warning),
                       (gpointer) &preview_data);
 
@@ -586,6 +587,7 @@ features_page_new(gint32 image_ID, gint32 layer_ID) {
                               && features_are_sensitive));
 
     disc_toggle_data.status = &(ui_state->disc_status);
+    disc_toggle_data.scale = disc_coeff_scale_entry;
 
     g_signal_connect (G_OBJECT(disc_button), "toggled",
                       G_CALLBACK(callback_combo_set_sensitive),

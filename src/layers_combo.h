@@ -34,7 +34,7 @@ typedef struct {
     gboolean *ui_toggled;
     GtkWidget *combo;
     GtkWidget *combo_label;
-    GtkAdjustment *scale;
+    GtkWidget *scale;
     gboolean *status;
     GtkWidget *guess_label;
     GtkWidget *guess_button_hor;
