@@ -1116,8 +1116,7 @@ alt_size_entry_set_unit(AltSizeEntry *gse,
     g_return_if_fail (gse->menu_show_pixels || (unit != gimp_unit_pixel()));
     g_return_if_fail (gse->menu_show_percent || (unit != gimp_unit_percent()));;
 
-    // @TODO fix migration
-    //gimp_unit_menu_set_unit(GIMP_UNIT_MENU(gse->unitmenu), unit);
+    gimp_unit_combo_box_set_active(GIMP_UNIT_COMBO_BOX(gse->unitmenu), unit);
     alt_size_entry_update_unit(gse, unit);
 }
 
